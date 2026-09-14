@@ -17,7 +17,11 @@ export const metadata: Metadata = {
   description: "A calm, thoughtful study platform with personalized topic mastery, spaced review scheduling, note-grounded answers, and patient step-by-step guidance.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
