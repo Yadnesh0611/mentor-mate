@@ -45,8 +45,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# OS / Editor
+# OS / Editor / Binaries
 .DS_Store
 Thumbs.db
 .idea/
 .vscode/
+*.exe

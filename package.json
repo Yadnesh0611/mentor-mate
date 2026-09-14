@@ -1,0 +1,13 @@
+{
+  "name": "mentor-mate",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=frontend",
+    "start": "npm run start --workspace=frontend",
+    "dev": "npm run dev --workspace=frontend"
+  }
+}
