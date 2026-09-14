@@ -509,6 +509,7 @@ class ApiClient {
     };
 
     const token = this.getToken();
+    headers['Bypass-Tunnel-Reminder'] = 'true';
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
