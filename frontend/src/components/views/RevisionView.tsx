@@ -42,21 +42,32 @@ function MermaidViewer({ chart }: MermaidViewerProps) {
   useEffect(() => {
     let isMounted = true;
     const renderChart = async () => {
+      if (!chart || !chart.trim()) return;
+      const sanitized = chart
+        .replace(/^```mermaid\s*/i, '')
+        .replace(/^```\s*/i, '')
+        .replace(/```$/i, '')
+        .trim();
+
+      const id = `mermaid-rev-${Math.random().toString(36).substring(2, 9)}`;
       try {
         const mermaid = (await import('mermaid')).default;
         mermaid.initialize({
           startOnLoad: false,
+          suppressErrorRendering: true,
           theme: 'neutral',
           fontFamily: 'inherit',
           securityLevel: 'loose',
         });
-        const id = `mermaid-rev-${Math.random().toString(36).substring(2, 9)}`;
-        const { svg: renderedSvg } = await mermaid.render(id, chart);
+        const { svg: renderedSvg } = await mermaid.render(id, sanitized);
         if (isMounted) {
           setSvg(renderedSvg);
           setError(null);
         }
       } catch (err: any) {
+        if (typeof document !== 'undefined') {
+          document.querySelectorAll(`[id^="d${id}"], [id^="dmermaid"]`).forEach((el) => el.remove());
+        }
         if (isMounted) {
           setError(err?.message || 'Mind map rendering preview.');
         }
@@ -65,6 +76,9 @@ function MermaidViewer({ chart }: MermaidViewerProps) {
     renderChart();
     return () => {
       isMounted = false;
+      if (typeof document !== 'undefined') {
+        document.querySelectorAll('[id^="dmermaid"]').forEach((el) => el.remove());
+      }
     };
   }, [chart]);
 
