@@ -1131,11 +1131,14 @@ export interface CareerReadinessResponse {
   readiness_score: number;
   hiring_bar_threshold: number;
   is_interview_ready: boolean;
+  assessed_topics_count?: number;
+  total_topics_count?: number;
   skill_gaps: Array<{
     topic: string;
     current_mastery: number;
     required_benchmark: number;
-    status: 'Ready' | 'Developing' | 'Critical Gap';
+    total_attempts?: number;
+    status: 'Ready' | 'Developing' | 'Critical Gap' | 'Untested';
   }>;
   recommended_action: string;
 }

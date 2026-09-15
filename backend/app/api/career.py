@@ -769,59 +769,93 @@ async def get_career_readiness(
     ks_res = await db.execute(ks_stmt)
     user_states = ks_res.all()
 
-    # Calculate student's average mastery and topic coverage
-    total_mastery = 0.0
+    # Collect actual scored topics from real quiz attempts
     scored_topics = []
-    
     if user_states:
         for ks, c_name, c_subj, c_topic in user_states:
-            total_mastery += (ks.p_l or 0.0)
-            scored_topics.append({
-                "concept_name": c_name,
-                "subject": c_subj,
-                "topic": c_topic,
-                "mastery_percent": round((ks.p_l or 0.0) * 100, 1),
-                "total_attempts": ks.total_attempts
-            })
-        avg_mastery = total_mastery / len(user_states)
-    else:
-        avg_mastery = 0.42  # Baseline estimate if no tests taken yet
+            attempts = ks.total_attempts or 0
+            if attempts > 0:
+                scored_topics.append({
+                    "concept_name": c_name or "",
+                    "subject": c_subj or "",
+                    "topic": c_topic or "",
+                    "mastery_percent": round((ks.p_l or 0.0) * 100, 1),
+                    "total_attempts": attempts
+                })
 
-    # Company Readiness Score calculation
-    # Scaled by target difficulty tier and student actual mastery
-    difficulty_multiplier = 0.85 if selected_track["difficulty_tier"] == "Elite" else 0.92
-    readiness_score = min(100.0, max(22.0, round(avg_mastery * 100 * difficulty_multiplier, 1)))
-
-    # Identify high-priority gap areas for this company
+    # Identify authentic topic-by-topic mastery for this company
     skill_gaps = []
     target_benchmark = 85.0 if selected_track["difficulty_tier"] == "Elite" else 80.0
+    
+    total_topic_mastery = 0.0
+    assessed_topics_count = 0
+
     for top in selected_track["key_topics"]:
-        matched = [s for s in scored_topics if top.lower() in s["concept_name"].lower() or top.lower() in (s["topic"] or "").lower()]
-        current_mastery = matched[0]["mastery_percent"] if matched else round(avg_mastery * 78, 1)
-        
+        top_lower = top.lower()
+        # Find if student has taken tests matching this key topic or sub-concepts
+        matched = [
+            s for s in scored_topics
+            if top_lower in s["concept_name"].lower()
+            or top_lower in s["topic"].lower()
+            or any(word in s["concept_name"].lower() for word in top_lower.split() if len(word) > 3)
+        ]
+
+        if matched:
+            # Average mastery across matching evaluated concepts
+            current_mastery = round(sum(m["mastery_percent"] for m in matched) / len(matched), 1)
+            total_attempts = sum(m["total_attempts"] for m in matched)
+            assessed_topics_count += 1
+            
+            if current_mastery >= target_benchmark:
+                status = "Ready"
+            elif current_mastery >= 50.0:
+                status = "Developing"
+            else:
+                status = "Critical Gap"
+        else:
+            # Strictly 0.0% if the student has never attempted or uploaded notes on this topic
+            current_mastery = 0.0
+            total_attempts = 0
+            status = "Untested"
+
+        total_topic_mastery += current_mastery
         skill_gaps.append({
             "topic": top,
             "current_mastery": current_mastery,
             "required_benchmark": target_benchmark,
-            "status": "Ready" if current_mastery >= target_benchmark else ("Developing" if current_mastery >= 60 else "Critical Gap")
+            "total_attempts": total_attempts,
+            "status": status
         })
 
-    is_interview_ready = readiness_score >= target_benchmark
+    # Authentic Company Readiness Score (Strict average of required rubric topics)
+    num_topics = len(selected_track["key_topics"])
+    readiness_score = round(total_topic_mastery / num_topics, 1) if num_topics > 0 else 0.0
+    is_interview_ready = readiness_score >= target_benchmark and assessed_topics_count == num_topics
 
+    # Authentic, factual actionable guidance
+    untested_count = sum(1 for g in skill_gaps if g["status"] == "Untested")
     critical_count = sum(1 for g in skill_gaps if g["status"] == "Critical Gap")
-    if is_interview_ready:
-        recommendation = f"Outstanding! Your diagnostic profile matches the hiring bar for {selected_track['company']}. Schedule a full mock interview."
+
+    if assessed_topics_count == 0:
+        recommendation = f"No diagnostic assessments taken for {selected_track['company']}'s specific topics yet. Take a Practice Quiz to establish your authentic readiness score."
+    elif is_interview_ready:
+        recommendation = f"Outstanding! Your verified mastery across {selected_track['company']}'s rubric meets or exceeds the {target_benchmark}% hiring threshold."
+    elif untested_count > 0:
+        untested_names = [g['topic'] for g in skill_gaps if g['status'] == 'Untested'][:2]
+        recommendation = f"You have {untested_count} unassessed topics for {selected_track['company']}. Take diagnostic quizzes on {', '.join(untested_names)} to measure your readiness."
     elif critical_count > 0:
         top_gaps = [g['topic'] for g in skill_gaps if g['status'] == 'Critical Gap'][:2]
         recommendation = f"Focus on the top critical gaps in {selected_track['company']}'s rubric: {', '.join(top_gaps)}."
     else:
-        recommendation = f"Solid foundation! Complete 2 more targeted problem sets to cross the {selected_track['company']} hiring threshold."
+        recommendation = f"Solid foundation! Complete targeted problem sets on developing areas to cross the {selected_track['company']} {target_benchmark}% hiring bar."
 
     return {
         "track": selected_track,
         "readiness_score": readiness_score,
         "hiring_bar_threshold": target_benchmark,
         "is_interview_ready": is_interview_ready,
+        "assessed_topics_count": assessed_topics_count,
+        "total_topics_count": num_topics,
         "skill_gaps": skill_gaps,
         "recommended_action": recommendation
     }

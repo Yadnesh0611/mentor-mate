@@ -317,7 +317,7 @@ export function CareerView({ onNavigateToStudy }: Props) {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-sm font-bold text-stone-900">Your Company Readiness</h3>
-                  <p className="text-[11px] text-stone-500">Calculated from your diagnostic quizzes & notes</p>
+                  <p className="text-[11px] text-stone-500">Calculated strictly from your actual quiz attempts</p>
                 </div>
                 <div className="p-2 rounded-xl bg-amber-50 text-amber-800">
                   <Award className="w-5 h-5" />
@@ -329,7 +329,11 @@ export function CareerView({ onNavigateToStudy }: Props) {
                   {readiness.readiness_score}%
                 </div>
                 <div className="flex items-center justify-center gap-1.5 text-xs font-semibold">
-                  {readiness.is_interview_ready ? (
+                  {readiness.readiness_score === 0 || readiness.assessed_topics_count === 0 ? (
+                    <span className="text-stone-500 flex items-center gap-1">
+                      <HelpCircle className="w-4 h-4 text-stone-400" /> Untested: 0 / {readiness.total_topics_count || readiness.skill_gaps.length} Topics Assessed
+                    </span>
+                  ) : readiness.is_interview_ready ? (
                     <span className="text-emerald-700 flex items-center gap-1">
                       <CheckCircle2 className="w-4 h-4" /> Ready for {selectedTrack.company} Bar
                     </span>
@@ -339,19 +343,30 @@ export function CareerView({ onNavigateToStudy }: Props) {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-stone-500 max-w-xs mx-auto">
+                <p className="text-[11px] text-stone-600 max-w-xs mx-auto leading-relaxed">
                   {readiness.recommended_action}
                 </p>
+                <div className="pt-1">
+                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-stone-400 bg-stone-100 px-2 py-0.5 rounded-full">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" /> 100% Genuine Data — Zero Synthetic Baselines
+                  </span>
+                </div>
               </div>
 
               {/* Topic-by-Topic Skill Gaps */}
               <div className="space-y-3">
-                <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
-                  Rubric Topic Mastery
-                </h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider">
+                    Rubric Topic Mastery
+                  </h4>
+                  <span className="text-[11px] text-stone-400">
+                    {readiness.assessed_topics_count || 0}/{readiness.total_topics_count || readiness.skill_gaps.length} Tested
+                  </span>
+                </div>
 
                 <div className="space-y-2">
                   {readiness.skill_gaps.map((gap, idx) => {
+                    const isUntested = gap.status === 'Untested';
                     const isReady = gap.status === 'Ready';
                     const isDev = gap.status === 'Developing';
 
@@ -363,13 +378,19 @@ export function CareerView({ onNavigateToStudy }: Props) {
                         <div className="min-w-0">
                           <span className="font-semibold text-stone-900 block truncate">{gap.topic}</span>
                           <span className="text-[10px] text-stone-500">
-                            Current: <strong className="text-stone-800">{gap.current_mastery}%</strong> / Req: {gap.required_benchmark}%
+                            {isUntested ? (
+                              <span className="text-stone-400">Current: <strong className="text-stone-600">0.0% (Unassessed)</strong> / Req: {gap.required_benchmark}%</span>
+                            ) : (
+                              <span>Current: <strong className="text-stone-800">{gap.current_mastery}%</strong> / Req: {gap.required_benchmark}%</span>
+                            )}
                           </span>
                         </div>
 
                         <span
                           className={`text-[10px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
-                            isReady
+                            isUntested
+                              ? 'bg-stone-100 text-stone-600 border border-stone-200'
+                              : isReady
                               ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                               : isDev
                               ? 'bg-amber-50 text-amber-800 border border-amber-200'
@@ -391,7 +412,11 @@ export function CareerView({ onNavigateToStudy }: Props) {
                   className="w-full py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold flex items-center justify-center gap-2 transition-all shadow-xs"
                 >
                   <BookOpen className="w-4 h-4" />
-                  <span>Practice High-Yield Topics Now</span>
+                  <span>
+                    {readiness.assessed_topics_count === 0
+                      ? `Take Diagnostic Quiz for ${selectedTrack.company}`
+                      : `Practice High-Yield Topics for ${selectedTrack.company}`}
+                  </span>
                 </button>
               )}
             </div>
