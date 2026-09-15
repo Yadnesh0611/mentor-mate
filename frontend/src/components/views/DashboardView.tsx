@@ -179,7 +179,7 @@ export function DashboardView({ onNavigate }: Props) {
       {/* 1. TOP WELCOME & STUDY PACING BANNER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-stone-200/90 shadow-2xs">
         <div className="flex items-start gap-4">
-          <img src="/logo.png" alt="Mentor Mate" className="w-12 h-12 rounded-xl object-contain shadow-2xs shrink-0 hidden sm:block" />
+          <img src="/logo.png" alt="Mentor Mate" className="h-12 w-auto max-w-[160px] rounded-xl object-contain shadow-2xs shrink-0 hidden sm:block" />
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Student Space</span>

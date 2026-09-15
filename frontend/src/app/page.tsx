@@ -94,7 +94,7 @@ export default function Home() {
           <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
             {/* Brand Logo */}
             <div className="flex items-center gap-2.5 cursor-pointer shrink-0" onClick={() => setActiveView('dashboard')}>
-              <img src="/logo.png" alt="Mentor Mate" className="w-8 h-8 rounded-lg object-contain shadow-2xs" />
+              <img src="/logo.png" alt="Mentor Mate" className="h-8 w-auto max-w-[120px] rounded-lg object-contain shadow-2xs" />
               <div className="hidden sm:block">
                 <div className="text-sm font-semibold tracking-tight text-stone-900 flex items-center gap-1.5 leading-tight">
                   Mentor Mate

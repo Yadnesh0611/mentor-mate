@@ -98,7 +98,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'register'
         </button>
 
         <div className="mb-6 text-center">
-          <img src="/logo.png" alt="Mentor Mate" className="w-14 h-14 rounded-2xl object-contain mx-auto mb-2 shadow-xs" />
+          <img src="/logo.png" alt="Mentor Mate" className="h-14 w-auto max-w-[180px] rounded-2xl object-contain mx-auto mb-2 shadow-xs" />
           <h2 className="text-xl font-bold text-stone-900 tracking-tight">
             {mode === 'login' ? 'Welcome Back' : step === 1 ? 'Create Your Account' : 'Set Your Study Goals'}
           </h2>

@@ -45,10 +45,10 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
       <header className="sticky top-3 z-50 px-4 sm:px-6">
         <div className="max-w-5xl mx-auto rounded-2xl border border-stone-200/80 bg-white/80 backdrop-blur-md px-4 sm:px-6 py-3 flex items-center justify-between shadow-xs transition-all">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Mentor Mate" className="w-9 h-9 rounded-xl object-contain shadow-2xs" />
-            <div>
+            <img src="/logo.png" alt="Mentor Mate" className="h-9 w-auto max-w-[140px] rounded-xl object-contain shadow-2xs" />
+            <div className="hidden sm:block">
               <span className="text-sm font-bold tracking-tight text-stone-900">Mentor Mate</span>
-              <span className="hidden sm:inline-block text-[10px] text-stone-400 font-medium ml-2 border-l border-stone-200 pl-2">
+              <span className="text-[10px] text-stone-400 font-medium ml-2 border-l border-stone-200 pl-2">
                 Your Academic Companion
               </span>
             </div>
@@ -613,7 +613,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-96 h-96 bg-amber-100/60 rounded-full blur-3xl -z-10 pointer-events-none" />
 
           <div className="max-w-xl mx-auto space-y-5">
-            <img src="/logo.png" alt="Mentor Mate" className="w-16 h-16 rounded-2xl object-contain mx-auto shadow-sm" />
+            <img src="/logo.png" alt="Mentor Mate" className="h-20 w-auto max-w-[220px] rounded-2xl object-contain mx-auto shadow-sm" />
 
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-stone-900 leading-tight">
               Ready to replace exam stress with genuine confidence?
@@ -646,7 +646,7 @@ export function LandingPage({ onOpenAuth }: LandingPageProps) {
       <footer className="mt-auto border-t border-stone-200/80 bg-white py-8 px-4 text-xs text-stone-500">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="Mentor Mate" className="w-7 h-7 rounded-lg object-contain" />
+            <img src="/logo.png" alt="Mentor Mate" className="h-8 w-auto max-w-[120px] rounded-lg object-contain" />
             <span className="text-stone-900 font-semibold text-xs">Mentor Mate</span>
             <span className="text-stone-400">•</span>
             <span className="text-[11px] text-stone-500">Personalized Academic Support</span>
