@@ -3,7 +3,20 @@
  * Connects frontend to FastAPI backend (http://127.0.0.1:8000/api/v1)
  */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://instrumentation-elections-trademarks-hardcover.trycloudflare.com/api/v1';
+const LIVE_TUNNEL_URL = 'https://missed-chairs-moments-favourite.trycloudflare.com/api/v1';
+
+export function getApiBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    // 1. If running locally on localhost
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'http://127.0.0.1:8000/api/v1';
+    }
+  }
+  return process.env.NEXT_PUBLIC_API_URL || LIVE_TUNNEL_URL;
+}
+
+const API_BASE = getApiBaseUrl();
 
 export interface User {
   id: string;
@@ -518,7 +531,8 @@ class ApiClient {
       headers['Content-Type'] = 'application/json';
     }
 
-    const response = await fetch(`${API_BASE}${endpoint}`, {
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}${endpoint}`, {
       ...options,
       headers,
     });
