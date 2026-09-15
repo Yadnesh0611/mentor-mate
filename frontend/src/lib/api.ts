@@ -7,20 +7,24 @@ export const DEFAULT_TUNNEL_URL = 'https://missed-chairs-moments-favourite.trycl
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    // 1. Check custom override in localStorage
+    const host = window.location.hostname;
+    // If running locally on localhost or 127.0.0.1, always connect directly to local backend
+    if (host === 'localhost' || host === '127.0.0.1') {
+      const custom = localStorage.getItem('mentormate_custom_api_url');
+      if (custom && custom.trim() && !custom.includes('trycloudflare.com')) {
+        return custom.trim().replace(/\/+$/, '');
+      }
+      return 'http://127.0.0.1:8000/api/v1';
+    }
+
+    // Check custom override in localStorage for remote/tunnel deployments
     const custom = localStorage.getItem('mentormate_custom_api_url');
     if (custom && custom.trim()) {
       return custom.trim().replace(/\/+$/, '');
     }
-
-    // 2. If running locally on localhost
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') {
-      return 'http://127.0.0.1:8000/api/v1';
-    }
   }
 
-  // 3. Fallback to process.env or active Cloudflare tunnel
+  // Fallback to process.env or active Cloudflare tunnel
   const envUrl = process.env.NEXT_PUBLIC_API_URL;
   if (envUrl && !envUrl.includes('127.0.0.1') && !envUrl.includes('localhost') && !envUrl.includes('instrumentation-elections')) {
     return envUrl;
@@ -1036,8 +1040,24 @@ class ApiClient {
   }
 
   // Career Tracks & Industry Readiness
-  async getIndustryTracks(): Promise<{ tracks: IndustryTrack[]; total: number; source: string }> {
-    return this.request<{ tracks: IndustryTrack[]; total: number; source: string }>('/career/tracks');
+  async getIndustryTracks(params?: { sector?: string; search?: string }): Promise<{
+    tracks: IndustryTrack[];
+    total: number;
+    total_available?: number;
+    sectors?: string[];
+    source: string;
+  }> {
+    const query = new URLSearchParams();
+    if (params?.sector) query.set('sector', params.sector);
+    if (params?.search) query.set('search', params.search);
+    const qs = query.toString();
+    return this.request<{
+      tracks: IndustryTrack[];
+      total: number;
+      total_available?: number;
+      sectors?: string[];
+      source: string;
+    }>(`/career/tracks${qs ? `?${qs}` : ''}`);
   }
 
   async getCareerReadiness(trackId: string): Promise<CareerReadinessResponse> {
@@ -1093,6 +1113,7 @@ export interface EmergencyResourcesResponse {
 export interface IndustryTrack {
   id: string;
   company: string;
+  sector?: string;
   role: string;
   summary: string;
   difficulty_tier: string;
