@@ -178,26 +178,29 @@ export function DashboardView({ onNavigate }: Props) {
       
       {/* 1. TOP WELCOME & STUDY PACING BANNER */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-stone-200/90 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Student Space</span>
-            <span className="text-stone-300">•</span>
-            <span className="text-xs text-stone-600">{student.education_tier || 'Academic Degree'}</span>
-          </div>
-          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
-            Welcome back, {student.name}
-          </h1>
-          <div className="flex items-center gap-2 text-xs text-stone-500 mt-1">
-            <span>Goal: <strong className="text-stone-800 font-medium">{student.goal || 'General Mastery'}</strong></span>
-            <span>•</span>
-            <span>Daily Target: <strong className="text-stone-800 font-medium">{student.daily_available_hours} hours</strong></span>
-            <button
-              onClick={() => setIsEditingGoal(true)}
-              className="ml-1.5 p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-              title="Edit study goals or exam date"
-            >
-              <Edit3 className="w-3 h-3" />
-            </button>
+        <div className="flex items-start gap-4">
+          <img src="/logo.png" alt="Mentor Mate" className="w-12 h-12 rounded-xl object-contain shadow-2xs shrink-0 hidden sm:block" />
+          <div>
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Student Space</span>
+              <span className="text-stone-300">•</span>
+              <span className="text-xs text-stone-600">{student.education_tier || 'Academic Degree'}</span>
+            </div>
+            <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+              Welcome back, {student.name}
+            </h1>
+            <div className="flex items-center gap-2 text-xs text-stone-500 mt-1">
+              <span>Goal: <strong className="text-stone-800 font-medium">{student.goal || 'General Mastery'}</strong></span>
+              <span>•</span>
+              <span>Daily Target: <strong className="text-stone-800 font-medium">{student.daily_available_hours} hours</strong></span>
+              <button
+                onClick={() => setIsEditingGoal(true)}
+                className="ml-1.5 p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
+                title="Edit study goals or exam date"
+              >
+                <Edit3 className="w-3 h-3" />
+              </button>
+            </div>
           </div>
         </div>
 

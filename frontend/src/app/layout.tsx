@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Mentor Mate — Your Personal Study & Learning Companion",
   description: "A calm, thoughtful study platform with personalized topic mastery, spaced review scheduling, note-grounded answers, and patient step-by-step guidance.",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({
