@@ -16,8 +16,12 @@ export const metadata: Metadata = {
   title: "Mentor Mate — Your Personal Study & Learning Companion",
   description: "A calm, thoughtful study platform with personalized topic mastery, spaced review scheduling, note-grounded answers, and patient step-by-step guidance.",
   icons: {
-    icon: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: '/icon.png', type: 'image/png' },
+      { url: '/logo.png', type: 'image/png' },
+    ],
+    shortcut: '/icon.png',
+    apple: '/icon.png',
   },
 };
 
