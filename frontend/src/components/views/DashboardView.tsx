@@ -22,7 +22,9 @@ import {
   Calendar,
   X,
   Check,
-  AlertTriangle
+  AlertTriangle,
+  Briefcase,
+  Heart
 } from 'lucide-react';
 
 
@@ -506,24 +508,10 @@ export function DashboardView({ onNavigate }: Props) {
                 <BookOpen className="w-4 h-4" />
               </div>
               <div className="text-xs font-semibold text-stone-900 flex items-center justify-between">
-                <span>1. Course Notes</span>
+                <span>1. Study Notes</span>
                 <ArrowRight className="w-3 h-3 text-emerald-700 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div className="text-[11px] text-stone-500 mt-0.5">Upload, inspect OCR & group units</div>
-            </button>
-
-            <button
-              onClick={() => onNavigate('resource-ai')}
-              className="p-3.5 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-200/70 text-left transition-all group cursor-pointer shadow-2xs"
-            >
-              <div className="w-7 h-7 rounded-lg bg-amber-100/80 text-amber-800 flex items-center justify-center mb-2">
-                <Search className="w-4 h-4" />
-              </div>
-              <div className="text-xs font-semibold text-stone-900 flex items-center justify-between">
-                <span>2. Ask Notes</span>
-                <ArrowRight className="w-3 h-3 text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <div className="text-[11px] text-stone-500 mt-0.5">Answers backed by verifiable citations</div>
+              <div className="text-[11px] text-stone-500 mt-0.5">Upload notes & get instant solutions</div>
             </button>
 
             <button
@@ -534,24 +522,38 @@ export function DashboardView({ onNavigate }: Props) {
                 <Brain className="w-4 h-4" />
               </div>
               <div className="text-xs font-semibold text-stone-900 flex items-center justify-between">
-                <span>3. Study Mentor</span>
+                <span>2. Study Mentor</span>
                 <ArrowRight className="w-3 h-3 text-sky-700 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div className="text-[11px] text-stone-500 mt-0.5">Step-by-step guidance for hard topics</div>
+              <div className="text-[11px] text-stone-500 mt-0.5">Socratic tutor for deep concept mastery</div>
             </button>
 
             <button
-              onClick={() => onNavigate('assessments')}
-              className="p-3.5 rounded-xl bg-indigo-50/50 hover:bg-indigo-50 border border-indigo-200/70 text-left transition-all group cursor-pointer shadow-2xs"
+              onClick={() => onNavigate('career')}
+              className="p-3.5 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-200/70 text-left transition-all group cursor-pointer shadow-2xs"
             >
-              <div className="w-7 h-7 rounded-lg bg-indigo-100/80 text-indigo-800 flex items-center justify-center mb-2">
-                <Target className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-lg bg-amber-100/80 text-amber-800 flex items-center justify-center mb-2">
+                <Briefcase className="w-4 h-4" />
               </div>
               <div className="text-xs font-semibold text-stone-900 flex items-center justify-between">
-                <span>4. Practice Quiz</span>
-                <ArrowRight className="w-3 h-3 text-indigo-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <span>3. Career Radar</span>
+                <ArrowRight className="w-3 h-3 text-amber-700 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <div className="text-[11px] text-stone-500 mt-0.5">Adaptive diagnostic tests for exams</div>
+              <div className="text-[11px] text-stone-500 mt-0.5">What Google, Amazon & top firms expect</div>
+            </button>
+
+            <button
+              onClick={() => onNavigate('wellbeing')}
+              className="p-3.5 rounded-xl bg-rose-50/50 hover:bg-rose-50 border border-rose-200/70 text-left transition-all group cursor-pointer shadow-2xs"
+            >
+              <div className="w-7 h-7 rounded-lg bg-rose-100/80 text-rose-800 flex items-center justify-center mb-2">
+                <Heart className="w-4 h-4" />
+              </div>
+              <div className="text-xs font-semibold text-stone-900 flex items-center justify-between">
+                <span>4. Well-Being Shield</span>
+                <ArrowRight className="w-3 h-3 text-rose-700 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+              <div className="text-[11px] text-stone-500 mt-0.5">Burnout check-in & 2-min breath reset</div>
             </button>
 
           </div>

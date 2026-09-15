@@ -8,6 +8,7 @@ import {
   AssessmentConfigOptions,
   AssessmentStartRequest
 } from '@/lib/api';
+import { MathRenderer } from '@/components/MathRenderer';
 import {
   Target,
   CheckCircle2,
@@ -393,9 +394,9 @@ export function AssessmentView({ onNavigateToProgress }: Props) {
         {/* Question Container */}
         <div className="p-6 rounded-2xl border border-stone-200/90 bg-white space-y-5 shadow-2xs">
           {/* Question Text */}
-          <p className="text-sm font-medium text-stone-900 leading-relaxed whitespace-pre-wrap">
-            {currentQuestion.question_text}
-          </p>
+          <div className="text-sm font-medium text-stone-900 leading-relaxed">
+            <MathRenderer content={currentQuestion.question_text} />
+          </div>
 
           {/* Diagram preview if provided */}
           {currentQuestion.diagram_code && (
@@ -409,7 +410,7 @@ export function AssessmentView({ onNavigateToProgress }: Props) {
                 let style = "border-stone-200/80 bg-stone-50/60 text-stone-800 hover:border-stone-300 hover:bg-stone-100/60";
                 if (result) {
                   if (result.correct_index != null && idx === result.correct_index) {
-                    style = "border-emerald-300 bg-emerald-50 text-emerald-900 font-medium";
+                     style = "border-emerald-300 bg-emerald-50 text-emerald-900 font-medium";
                   } else if (selectedOptionIndex === idx) {
                     style = "border-rose-300 bg-rose-50 text-rose-900";
                   }
@@ -424,7 +425,9 @@ export function AssessmentView({ onNavigateToProgress }: Props) {
                     onClick={() => setSelectedOptionIndex(idx)}
                     className={`w-full text-left p-3.5 rounded-xl border text-xs transition-all flex items-center justify-between cursor-pointer ${style}`}
                   >
-                    <span>{opt}</span>
+                    <div className="flex-1">
+                      <MathRenderer content={opt} className="inline-block" />
+                    </div>
                     {result && result.correct_index != null && idx === result.correct_index && (
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 ml-2" />
                     )}
@@ -504,16 +507,14 @@ export function AssessmentView({ onNavigateToProgress }: Props) {
               {result.ai_feedback && (
                 <div className="text-xs text-stone-700 bg-white p-3 rounded-lg border border-stone-200/70 leading-relaxed">
                   <span className="font-semibold text-stone-900 block mb-0.5 text-[11px]">AI Evaluation:</span>
-                  {result.ai_feedback}
+                  <MathRenderer content={result.ai_feedback} />
                 </div>
               )}
 
               {/* Model Explanation */}
               <div>
                 <span className="font-semibold text-stone-800 block text-[11px] mb-0.5">Reference Concept:</span>
-                <p className="text-xs text-stone-600 leading-relaxed whitespace-pre-wrap">
-                  {result.explanation}
-                </p>
+                <MathRenderer content={result.explanation} className="text-stone-600" />
               </div>
             </div>
           )}

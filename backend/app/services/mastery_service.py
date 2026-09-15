@@ -83,7 +83,17 @@ async def calculate_comprehensive_performance(db: AsyncSession, user_id: str) ->
         .where(KnowledgeState.user_id == user_id)
         .order_by(desc(KnowledgeState.p_l))
     )
-    ks_rows = (await db.execute(ks_stmt)).all()
+    all_ks_rows = (await db.execute(ks_stmt)).all()
+    
+    # Filter out zero-attempt concepts from unrelated subjects if user has a defined field of study
+    user_field_str = (user.field_of_study or (profile.goal if profile else "")).lower()
+    ks_rows = []
+    for ks, c in all_ks_rows:
+        if ks.total_attempts and ks.total_attempts > 0:
+            ks_rows.append((ks, c))
+        elif not user_field_str or any(kw in (c.subject or "").lower() or kw in (c.topic or "").lower() or kw in c.name.lower() for kw in ["ai", "machine", "learning", "data", "cs", "computer", "code", "python", "java", "math", "calculus", "neural", "rag", "llm", "software", "engineering", user_field_str[:6]]):
+            ks_rows.append((ks, c))
+
     total_concepts = len(ks_rows)
     mastered_concepts_count = sum(1 for ks, c in ks_rows if ks.p_l >= 0.75)
     in_progress_concepts_count = sum(1 for ks, c in ks_rows if 0.40 <= ks.p_l < 0.75)

@@ -977,7 +977,105 @@ class ApiClient {
       method: 'PATCH',
     });
   }
+
+  // Wellbeing & Burnout Shield
+  async submitWellbeingCheckin(data: { state: string; stress_level?: number; sleep_hours?: number; notes?: string }): Promise<WellbeingCheckInResponse> {
+    return this.request<WellbeingCheckInResponse>('/wellbeing/checkin', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getWellbeingStatus(): Promise<WellbeingStatusResponse> {
+    return this.request<WellbeingStatusResponse>('/wellbeing/status');
+  }
+
+  async getEmergencyResources(): Promise<EmergencyResourcesResponse> {
+    return this.request<EmergencyResourcesResponse>('/wellbeing/emergency-resources');
+  }
+
+  // Career Tracks & Industry Readiness
+  async getIndustryTracks(): Promise<{ tracks: IndustryTrack[]; total: number; source: string }> {
+    return this.request<{ tracks: IndustryTrack[]; total: number; source: string }>('/career/tracks');
+  }
+
+  async getCareerReadiness(trackId: string): Promise<CareerReadinessResponse> {
+    return this.request<CareerReadinessResponse>(`/career/readiness?track_id=${encodeURIComponent(trackId)}`);
+  }
 }
 
+export interface WellbeingCheckInResponse {
+  id: string;
+  state: string;
+  stress_level: number;
+  sleep_hours?: number | null;
+  burnout_risk: string;
+  recommended_schedule_mode: string;
+  pacing_advice: string;
+  created_at: string;
+}
+
+export interface WellbeingStatusResponse {
+  latest_checkin?: {
+    state: string;
+    burnout_risk: string;
+    stress_level: number;
+    sleep_hours?: number | null;
+    created_at?: string;
+  } | null;
+  history_count: number;
+  recent_states: string[];
+  burnout_risk: string;
+  active_pacing_strategy: string;
+  emergency_disclaimer: string;
+}
+
+export interface EmergencyResourcesResponse {
+  verified_helplines: Array<{
+    name: string;
+    agency: string;
+    contact: string;
+    availability: string;
+    languages: string;
+    description: string;
+  }>;
+  neurobiology_resets: Array<{
+    id: string;
+    title: string;
+    duration_seconds: number;
+    mechanism: string;
+    steps: string[];
+  }>;
+  campus_advisory: string;
+}
+
+export interface IndustryTrack {
+  id: string;
+  company: string;
+  role: string;
+  summary: string;
+  difficulty_tier: string;
+  hiring_criteria: Array<{
+    domain: string;
+    weight_percent: number;
+    focus: string;
+  }>;
+  key_topics: string[];
+  interviewer_tip: string;
+}
+
+export interface CareerReadinessResponse {
+  track: IndustryTrack;
+  readiness_score: number;
+  hiring_bar_threshold: number;
+  is_interview_ready: boolean;
+  skill_gaps: Array<{
+    topic: string;
+    current_mastery: number;
+    required_benchmark: number;
+    status: 'Ready' | 'Developing' | 'Critical Gap';
+  }>;
+  recommended_action: string;
+}
 
 export const api = new ApiClient();

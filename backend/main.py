@@ -80,10 +80,14 @@ app.include_router(dashboard_router, prefix=api_prefix)
 from app.api.mastery import router as mastery_router
 from app.api.schedule import router as schedule_router
 from app.api.courses import router as courses_router
+from app.api.wellbeing import router as wellbeing_router
+from app.api.career import router as career_router
 
 app.include_router(mastery_router, prefix=api_prefix)
 app.include_router(schedule_router, prefix=api_prefix)
 app.include_router(courses_router, prefix=api_prefix)
+app.include_router(wellbeing_router, prefix=api_prefix)
+app.include_router(career_router, prefix=api_prefix)
 app.include_router(health_router, prefix=api_prefix)
 
 

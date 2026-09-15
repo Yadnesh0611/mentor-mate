@@ -13,6 +13,8 @@ import { RevisionView } from '@/components/views/RevisionView';
 import { ProgressView } from '@/components/views/ProgressView';
 import { ScheduleView } from '@/components/views/ScheduleView';
 import { CourseView } from '@/components/views/CourseView';
+import { CareerView } from '@/components/views/CareerView';
+import { WellbeingView } from '@/components/views/WellbeingView';
 import {
   Brain,
   Sparkles,
@@ -34,16 +36,19 @@ import {
   Compass,
   GraduationCap,
   Calendar,
-  BookMarked
+  BookMarked,
+  Briefcase,
+  Heart
 } from 'lucide-react';
 
 export default function Home() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
-  const [activeView, setActiveView] = useState<'dashboard' | 'resources' | 'resource-ai' | 'mentor' | 'assessments' | 'revision' | 'progress' | 'schedule' | 'courses'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'resources' | 'mentor' | 'assessments' | 'revision' | 'progress' | 'schedule' | 'courses' | 'career' | 'wellbeing'>('dashboard');
   const [targetResourceId, setTargetResourceId] = useState<string | undefined>(undefined);
   const [targetFolderId, setTargetFolderId] = useState<string | undefined>(undefined);
+  const [initialNotesTab, setInitialNotesTab] = useState<'materials' | 'solutions'>('materials');
   const [checkingAuth, setCheckingAuth] = useState(true);
 
 
@@ -76,7 +81,8 @@ export default function Home() {
   const handleAskResource = (resourceId?: string, folderId?: string) => {
     setTargetResourceId(resourceId || undefined);
     setTargetFolderId(folderId || undefined);
-    setActiveView('resource-ai');
+    setInitialNotesTab('solutions');
+    setActiveView('resources');
   };
 
   // If student is logged in, show the comprehensive Product Workspace
@@ -104,20 +110,28 @@ export default function Home() {
               {[
                 { id: 'dashboard', label: 'Overview', icon: BarChart3 },
                 { id: 'resources', label: 'Study Notes', icon: BookOpen },
-                { id: 'resource-ai', label: 'Ask Notes', icon: Sparkles },
                 { id: 'mentor', label: 'Study Mentor', icon: Brain },
                 { id: 'assessments', label: 'Practice Quiz', icon: Target },
                 { id: 'revision', label: 'Smart Review', icon: Clock },
                 { id: 'progress', label: 'My Progress', icon: Compass },
                 { id: 'schedule', label: 'Schedule', icon: Calendar },
                 { id: 'courses', label: 'Courses', icon: BookMarked },
+                { id: 'career', label: 'Career Radar', icon: Briefcase },
+                { id: 'wellbeing', label: 'Well-Being', icon: Heart },
               ].map(item => {
                 const Icon = item.icon;
                 const isActive = activeView === item.id;
                 return (
                   <button
                     key={item.id}
-                    onClick={() => setActiveView(item.id as any)}
+                    onClick={() => {
+                      if (item.id === 'resources') {
+                        setInitialNotesTab('materials');
+                        setTargetResourceId(undefined);
+                        setTargetFolderId(undefined);
+                      }
+                      setActiveView(item.id as any);
+                    }}
                     className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 shrink-0 whitespace-nowrap ${
                       isActive
                         ? "bg-stone-900 text-white shadow-xs font-semibold"
@@ -151,18 +165,26 @@ export default function Home() {
           <div className="lg:hidden flex items-center gap-1 overflow-x-auto px-4 py-2 border-t border-stone-200/80 bg-stone-50/80 scrollbar-none">
             {[
               { id: 'dashboard', label: 'Overview' },
-              { id: 'resources', label: 'Notes' },
-              { id: 'resource-ai', label: 'Ask Notes' },
+              { id: 'resources', label: 'Study Notes' },
               { id: 'mentor', label: 'Mentor' },
               { id: 'assessments', label: 'Quiz' },
               { id: 'revision', label: 'Review' },
               { id: 'progress', label: 'Progress' },
               { id: 'schedule', label: 'Schedule' },
               { id: 'courses', label: 'Courses' },
+              { id: 'career', label: 'Career' },
+              { id: 'wellbeing', label: 'Well-Being' },
             ].map(item => (
               <button
                 key={item.id}
-                onClick={() => setActiveView(item.id as any)}
+                onClick={() => {
+                  if (item.id === 'resources') {
+                    setInitialNotesTab('materials');
+                    setTargetResourceId(undefined);
+                    setTargetFolderId(undefined);
+                  }
+                  setActiveView(item.id as any);
+                }}
                 className={`px-2.5 py-1 rounded-lg text-xs whitespace-nowrap font-medium shrink-0 transition-all ${
                   activeView === item.id ? "bg-stone-900 text-white font-semibold" : "text-stone-600 hover:bg-stone-200/60"
                 }`}
@@ -178,7 +200,7 @@ export default function Home() {
           {activeView === 'dashboard' && (
             <DashboardView
               onNavigate={(view, resId, folderId) => {
-                if (resId || folderId) {
+                if (resId || folderId || view === 'resource-ai' || view === 'resources') {
                   handleAskResource(resId, folderId);
                 } else {
                   setActiveView(view as any);
@@ -186,8 +208,15 @@ export default function Home() {
               }}
             />
           )}
-          {activeView === 'resources' && <ResourcesView onAskResource={handleAskResource} />}
-          {activeView === 'resource-ai' && <ResourceAiChatView initialResourceId={targetResourceId} initialFolderId={targetFolderId} />}
+          {activeView === 'resources' && (
+            <ResourcesView
+              initialTab={initialNotesTab}
+              initialResourceId={targetResourceId}
+              initialFolderId={targetFolderId}
+              onNavigateToMentor={() => setActiveView('mentor')}
+              onAskResource={handleAskResource}
+            />
+          )}
           {activeView === 'mentor' && <AskMentorView />}
 
           {activeView === 'assessments' && <AssessmentView />}
@@ -195,6 +224,8 @@ export default function Home() {
           {activeView === 'progress' && <ProgressView onNavigate={(view) => setActiveView(view as any)} />}
           {activeView === 'schedule' && <ScheduleView />}
           {activeView === 'courses' && <CourseView onNavigate={(view) => setActiveView(view as any)} />}
+          {activeView === 'career' && <CareerView onNavigateToStudy={() => setActiveView('assessments')} />}
+          {activeView === 'wellbeing' && <WellbeingView onNavigateToSchedule={() => setActiveView('schedule')} />}
         </main>
 
       </div>

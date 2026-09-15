@@ -157,14 +157,16 @@ def synthesize_academic_response(
                 query_terms = set(re.findall(r"\b[a-zA-Z]{3,}\b", clean_q))
                 lines = [ln.strip() for ln in excerpts.splitlines() if ln.strip() and not ln.startswith("[Source")]
                 matched_lines = [ln for ln in lines if any(t in ln.lower() for t in query_terms)]
-                relevant_snippet = "\n\n".join(matched_lines[:5]) if matched_lines else "\n\n".join(lines[:4])
-                
-                return (
-                    f"**From your study materials:**\n\n"
-                    f"{relevant_snippet}\n\n"
-                    f"---\n"
-                    f"**Key Takeaway:** The concepts above are drawn directly from your uploaded materials. Which specific part, definition, or formula would you like to explore deeper?"
-                )
+                if matched_lines:
+                    relevant_snippet = "\n\n".join(matched_lines[:5])
+                    return (
+                        f"**From your study materials:**\n\n"
+                        f"{relevant_snippet}\n\n"
+                        f"---\n"
+                        f"**Key Takeaway:** The concepts above are drawn directly from your uploaded materials. Which specific part, definition, or formula would you like to explore deeper?"
+                    )
+                else:
+                    return "I couldn't find enough support for that answer in your uploaded resources. If this topic is not in your uploaded notes, please visit the **Study Mentor** tab for open-ended questions and tutoring!"
 
     # 3. Dynamic academic response for other topics
     words = [w for w in re.findall(r"\b[a-zA-Z]{3,}\b", clean_q) if w not in {"what", "when", "where", "how", "give", "explain", "tell", "show", "formula", "laws", "rule", "theorem", "definition", "does", "the", "bro"}]

@@ -8,6 +8,7 @@ import {
   StudyFolder,
   AtRiskConceptOut
 } from '@/lib/api';
+import { MathRenderer } from '@/components/MathRenderer';
 import {
   GraduationCap,
   FileText,
@@ -629,9 +630,9 @@ export function RevisionView() {
                         </div>
 
                         <div className="py-4 text-center">
-                          <p className={`text-base font-semibold leading-relaxed ${isFlipped ? 'text-stone-900' : 'text-stone-800'}`}>
-                            {isFlipped ? currentCard.back : currentCard.front}
-                          </p>
+                          <div className={`text-sm font-semibold leading-relaxed ${isFlipped ? 'text-stone-900' : 'text-stone-800'}`}>
+                            <MathRenderer content={isFlipped ? currentCard.back : currentCard.front} />
+                          </div>
                         </div>
 
                         <div className="flex items-center justify-between text-xs pt-2 border-t border-stone-200/60">
@@ -657,7 +658,10 @@ export function RevisionView() {
                       {showHint && currentCard.hint && (
                         <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-center gap-2">
                           <HelpCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                          <span><strong>Hint:</strong> {currentCard.hint}</span>
+                          <div className="flex-1">
+                            <span className="font-semibold mr-1">Hint:</span>
+                            <MathRenderer content={currentCard.hint} className="inline-block" />
+                          </div>
                         </div>
                       )}
 
@@ -766,10 +770,12 @@ export function RevisionView() {
                         return (
                           <div key={qIdx} className="p-4 rounded-xl border border-stone-200 bg-stone-50/50 space-y-3">
                             <div className="text-xs font-bold text-stone-900 flex items-start gap-2">
-                              <span className="px-1.5 py-0.5 rounded bg-stone-200 text-stone-700 text-[10px]">
+                              <span className="px-1.5 py-0.5 rounded bg-stone-200 text-stone-700 text-[10px] shrink-0">
                                 Q{qIdx + 1}
                               </span>
-                              <span>{q.question}</span>
+                              <div className="flex-1">
+                                <MathRenderer content={q.question} />
+                              </div>
                             </div>
 
                             <div className="grid grid-cols-1 gap-2">
@@ -803,9 +809,11 @@ export function RevisionView() {
                                     }}
                                     className={btnClasses}
                                   >
-                                    <span>{opt}</span>
-                                    {quizSubmitted && isCorrect && <Check className="w-3.5 h-3.5 text-emerald-600" />}
-                                    {quizSubmitted && isChosen && !isCorrect && <X className="w-3.5 h-3.5 text-rose-600" />}
+                                    <div className="flex-1">
+                                      <MathRenderer content={opt} className="inline-block" />
+                                    </div>
+                                    {quizSubmitted && isCorrect && <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 ml-2" />}
+                                    {quizSubmitted && isChosen && !isCorrect && <X className="w-3.5 h-3.5 text-rose-600 shrink-0 ml-2" />}
                                   </button>
                                 );
                               })}
@@ -813,7 +821,8 @@ export function RevisionView() {
 
                             {quizSubmitted && (
                               <div className="p-2.5 rounded-lg bg-stone-100 border border-stone-200/80 text-[11px] text-stone-600 leading-relaxed">
-                                <strong>Explanation:</strong> {q.explanation}
+                                <strong className="block mb-0.5">Explanation:</strong>
+                                <MathRenderer content={q.explanation} />
                               </div>
                             )}
                           </div>
@@ -846,8 +855,10 @@ export function RevisionView() {
               {/* FORMAT 4: KEY TAKEAWAYS */}
               {activeFormat === 'takeaways' && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-stone-50 border border-stone-200/80 text-xs text-stone-700 leading-relaxed whitespace-pre-wrap">
-                    {activeItem.quick_summary || (
+                  <div className="p-4 rounded-xl bg-stone-50 border border-stone-200/80 text-xs text-stone-700 leading-relaxed">
+                    {activeItem.quick_summary ? (
+                      <MathRenderer content={activeItem.quick_summary} />
+                    ) : (
                       <span className="text-stone-400">No summary takeaways available for this concept.</span>
                     )}
                   </div>

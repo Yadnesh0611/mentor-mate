@@ -99,7 +99,7 @@ class RAGService:
 
         if not evidence:
             return {
-                "content": "I couldn\'t find enough support for that answer in your uploaded resources. Please make sure the topic is covered in your uploaded materials or ask general questions in the \'Ask Mentor\' tab.",
+                "content": "I couldn't find enough support for that answer in your uploaded resources. If this topic is not in your uploaded notes, please visit the **Study Mentor** tab for open-ended questions and tutoring!",
                 "evidence_sufficient": False,
                 "citations": []
             }

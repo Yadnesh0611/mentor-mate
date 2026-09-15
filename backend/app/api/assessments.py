@@ -32,29 +32,55 @@ router = APIRouter(prefix="/assessments", tags=["Diagnostic Assessment & Knowled
 
 
 def extract_json_object(raw_text: str) -> Optional[Dict[str, Any]]:
-    """Extracts a top-level JSON object from markdown code blocks or raw text."""
+    """Extracts and parses a JSON object from markdown code blocks or raw text, with LaTeX-safe escape repairs."""
     if not raw_text:
         return None
-    # 1. Try markdown ```json blocks
-    for block in raw_text.split("```"):
-        clean = block.replace("json", "").strip()
-        if clean.startswith("{") and clean.endswith("}"):
-            try:
-                return json.loads(clean)
-            except Exception:
-                pass
-    # 2. Try regex match for outermost { ... }
-    match = re.search(r'(\{[\s\S]*\})', raw_text)
-    if match:
-        try:
-            return json.loads(match.group(1))
-        except Exception:
-            pass
-    # 3. Direct parse
-    try:
-        return json.loads(raw_text.strip())
-    except Exception:
+    import re
+    import json
+
+    # 1. Strip markdown code fencing if present
+    cleaned = raw_text.strip()
+    for block in cleaned.split("```"):
+        b = block.replace("json", "").strip()
+        if b.startswith("{") and b.endswith("}"):
+            cleaned = b
+            break
+
+    # 2. Extract outermost { ... }
+    match = re.search(r'(\{[\s\S]*\})', cleaned)
+    if not match:
         return None
+
+    candidate = match.group(1).strip()
+
+    # Direct parse attempt
+    try:
+        return json.loads(candidate)
+    except Exception:
+        pass
+
+    # Fix unescaped LaTeX backslashes inside JSON string literals:
+    # Any \ followed by a word (e.g. \frac, \theta, \beta, \alpha, \sum) should be escaped as \\
+    def escape_latex_backslashes(text: str) -> str:
+        fixed = re.sub(r'\\([a-zA-Z]+)', r'\\\\\1', text)
+        fixed = re.sub(r'\\{3,}([a-zA-Z]+)', r'\\\\\1', fixed)
+        return fixed
+
+    fixed_candidate = escape_latex_backslashes(candidate)
+
+    try:
+        return json.loads(fixed_candidate)
+    except Exception as e:
+        logger.warning(f"[AssessmentJSON] LaTeX-repaired JSON parse failed: {e}")
+
+    # Fallback to ast literal_eval for lenient parsing
+    try:
+        import ast
+        return ast.literal_eval(fixed_candidate)
+    except Exception:
+        pass
+
+    return None
 
 
 @router.get("/config-options")

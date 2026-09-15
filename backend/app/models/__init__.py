@@ -7,6 +7,7 @@ from app.models.revision import RevisionItem
 from app.models.schedule import StudySchedule
 from app.models.conversation import Conversation, Message, Citation
 from app.models.course import Course
+from app.models.wellbeing import WellbeingCheckIn
 
 __all__ = [
     'Base',
@@ -26,5 +27,6 @@ __all__ = [
     'Citation',
     'StudySchedule',
     'Course',
+    'WellbeingCheckIn',
 ]
 
