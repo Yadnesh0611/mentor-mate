@@ -3,20 +3,47 @@
  * Connects frontend to FastAPI backend (http://127.0.0.1:8000/api/v1)
  */
 
-const LIVE_TUNNEL_URL = 'https://missed-chairs-moments-favourite.trycloudflare.com/api/v1';
+export const DEFAULT_TUNNEL_URL = 'https://missed-chairs-moments-favourite.trycloudflare.com/api/v1';
 
 export function getApiBaseUrl(): string {
   if (typeof window !== 'undefined') {
-    // 1. If running locally on localhost
+    // 1. Check custom override in localStorage
+    const custom = localStorage.getItem('mentormate_custom_api_url');
+    if (custom && custom.trim()) {
+      return custom.trim().replace(/\/+$/, '');
+    }
+
+    // 2. If running locally on localhost
     const host = window.location.hostname;
     if (host === 'localhost' || host === '127.0.0.1') {
       return 'http://127.0.0.1:8000/api/v1';
     }
   }
-  return process.env.NEXT_PUBLIC_API_URL || LIVE_TUNNEL_URL;
+
+  // 3. Fallback to process.env or active Cloudflare tunnel
+  const envUrl = process.env.NEXT_PUBLIC_API_URL;
+  if (envUrl && !envUrl.includes('127.0.0.1') && !envUrl.includes('localhost') && !envUrl.includes('instrumentation-elections')) {
+    return envUrl;
+  }
+  return DEFAULT_TUNNEL_URL;
 }
 
-const API_BASE = getApiBaseUrl();
+export function setCustomApiBaseUrl(url: string | null): string {
+  if (typeof window !== 'undefined') {
+    if (url && url.trim()) {
+      let clean = url.trim().replace(/\/+$/, '');
+      if (!clean.endsWith('/api/v1')) {
+        clean = `${clean}/api/v1`;
+      }
+      localStorage.setItem('mentormate_custom_api_url', clean);
+      return clean;
+    } else {
+      localStorage.removeItem('mentormate_custom_api_url');
+      return getApiBaseUrl();
+    }
+  }
+  return DEFAULT_TUNNEL_URL;
+}
 
 export interface User {
   id: string;
@@ -716,7 +743,7 @@ class ApiClient {
 
   getResourceFileUrl(resourceId: string): string {
     const token = this.getToken();
-    return `${API_BASE}/resources/${resourceId}/file${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+    return `${getApiBaseUrl()}/resources/${resourceId}/file${token ? `?token=${encodeURIComponent(token)}` : ''}`;
   }
 
   // Resource AI (Strict Grounded RAG)

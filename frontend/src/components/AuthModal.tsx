@@ -1,8 +1,6 @@
-"use client";
-
-import React, { useState } from 'react';
-import { api, User } from '@/lib/api';
-import { X, Lock, Mail, User as UserIcon, GraduationCap, Sparkles, Loader2, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { api, User, getApiBaseUrl, setCustomApiBaseUrl, DEFAULT_TUNNEL_URL } from '@/lib/api';
+import { X, Lock, Mail, User as UserIcon, GraduationCap, Sparkles, Loader2, ArrowRight, Settings2, Globe, Check } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,6 +21,32 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'register'
   const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Server settings state
+  const [showServerSettings, setShowServerSettings] = useState(false);
+  const [apiUrlInput, setApiUrlInput] = useState('');
+  const [savedUrlSuccess, setSavedUrlSuccess] = useState(false);
+
+  useEffect(() => {
+    setApiUrlInput(getApiBaseUrl());
+  }, [isOpen]);
+
+  const handleSaveApiUrl = (e: React.FormEvent) => {
+    e.preventDefault();
+    const updated = setCustomApiBaseUrl(apiUrlInput);
+    setApiUrlInput(updated);
+    setSavedUrlSuccess(true);
+    setError(null);
+    setTimeout(() => setSavedUrlSuccess(false), 2500);
+  };
+
+  const handleResetApiUrl = () => {
+    const def = setCustomApiBaseUrl(DEFAULT_TUNNEL_URL);
+    setApiUrlInput(def);
+    setSavedUrlSuccess(true);
+    setError(null);
+    setTimeout(() => setSavedUrlSuccess(false), 2500);
+  };
 
   if (!isOpen) return null;
 
@@ -91,7 +115,19 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'register'
 
         {error && (
           <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs">
-            {error}
+            <p className="font-semibold">{error}</p>
+            {error.toLowerCase().includes('failed to fetch') && (
+              <div className="mt-2 pt-2 border-t border-rose-200/60 flex items-center justify-between">
+                <span className="text-[11px] text-rose-700">Backend tunnel may be unreachable or updating.</span>
+                <button
+                  type="button"
+                  onClick={() => setShowServerSettings(true)}
+                  className="text-[11px] font-bold underline text-rose-900 hover:text-rose-950"
+                >
+                  Configure Server URL
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -253,7 +289,7 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'register'
           </button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-stone-100 text-center">
+        <div className="mt-5 pt-3 border-t border-stone-100 flex flex-col items-center gap-2">
           {mode === 'login' ? (
             <p className="text-xs text-stone-500">
               Don't have an account yet?{' '}
@@ -275,6 +311,59 @@ export function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'register'
               </button>
             </p>
           )}
+
+          {/* Server Connection Settings Accordion */}
+          <div className="w-full pt-2">
+            <button
+              type="button"
+              onClick={() => setShowServerSettings(!showServerSettings)}
+              className="flex items-center justify-center gap-1.5 text-[11px] text-stone-400 hover:text-stone-700 mx-auto transition-colors"
+            >
+              <Globe className="w-3 h-3" />
+              <span>Server Connection: <strong className="font-mono text-stone-600">{getApiBaseUrl().replace('https://', '').replace('http://', '').slice(0, 24)}...</strong></span>
+              <Settings2 className="w-3 h-3" />
+            </button>
+
+            {showServerSettings && (
+              <div className="mt-3 p-3 bg-stone-50 rounded-xl border border-stone-200 text-left animate-in fade-in">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-[11px] font-bold text-stone-700">Live API Endpoint</span>
+                  {savedUrlSuccess && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded">
+                      <Check className="w-3 h-3" /> Saved!
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-stone-500 mb-2 leading-relaxed">
+                  If testing remotely from Vercel, paste the active Cloudflare tunnel URL or your local network IP below:
+                </p>
+                <form onSubmit={handleSaveApiUrl} className="space-y-2">
+                  <input
+                    type="text"
+                    value={apiUrlInput}
+                    onChange={(e) => setApiUrlInput(e.target.value)}
+                    placeholder="https://xxx.trycloudflare.com"
+                    className="w-full px-2.5 py-1.5 font-mono text-[11px] rounded-lg border border-stone-300 bg-white text-stone-900 focus:outline-none focus:border-blue-600"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="submit"
+                      className="flex-1 py-1.5 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-[11px] font-medium transition-colors"
+                    >
+                      Save Endpoint
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetApiUrl}
+                      className="px-2.5 py-1.5 border border-stone-300 bg-white hover:bg-stone-100 text-stone-700 rounded-lg text-[11px] transition-colors"
+                    >
+                      Reset Default
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
