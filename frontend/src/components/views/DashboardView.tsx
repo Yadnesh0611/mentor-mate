@@ -39,12 +39,15 @@ export function DashboardView({ onNavigate }: Props) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Edit Goal / Exam modal state
-  const [isEditingGoal, setIsEditingGoal] = useState(false);
+  // Edit Profile modal state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editName, setEditName] = useState('');
   const [editGoalText, setEditGoalText] = useState('');
-  const [editDailyHours, setEditDailyHours] = useState(3.0);
+  const [editEducationTier, setEditEducationTier] = useState('');
+  const [editBoard, setEditBoard] = useState('');
+  const [editDailyHours, setEditDailyHours] = useState(3.5);
   const [editDaysToExam, setEditDaysToExam] = useState<string>('');
-  const [savingGoal, setSavingGoal] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   const fetchDashboardData = async () => {
     try {
@@ -61,8 +64,10 @@ export function DashboardView({ onNavigate }: Props) {
 
       // Prepopulate edit modal
       if (dashRes?.student) {
+        setEditName(dashRes.student.name || '');
         setEditGoalText(dashRes.student.goal || '');
-        setEditDailyHours(dashRes.student.daily_available_hours || 3.0);
+        setEditEducationTier(dashRes.student.education_tier || 'Class 10 (10th Boards)');
+        setEditDailyHours(dashRes.student.daily_available_hours || 3.5);
         setEditDaysToExam(dashRes.student.days_to_exam != null ? String(dashRes.student.days_to_exam) : '');
       }
     } catch (err: any) {
@@ -76,22 +81,25 @@ export function DashboardView({ onNavigate }: Props) {
     fetchDashboardData();
   }, []);
 
-  const handleSaveGoal = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavingGoal(true);
+    setSavingProfile(true);
     try {
       const days = editDaysToExam.trim() !== '' ? parseInt(editDaysToExam.trim(), 10) : null;
       await api.updateProfile({
-        goal: editGoalText.trim(),
+        name: editName.trim() || undefined,
+        goal: editGoalText.trim() || undefined,
+        education_tier: editEducationTier.trim() || undefined,
+        board_or_university: editBoard.trim() || undefined,
         daily_available_hours: editDailyHours,
         days_to_exam: days
       });
-      setIsEditingGoal(false);
+      setIsEditingProfile(false);
       await fetchDashboardData();
     } catch (err: any) {
-      alert(err.message || 'Unable to update study goals.');
+      alert(err.message || 'Unable to update study profile.');
     } finally {
-      setSavingGoal(false);
+      setSavingProfile(false);
     }
   };
 
@@ -186,20 +194,23 @@ export function DashboardView({ onNavigate }: Props) {
               <span className="text-stone-300">•</span>
               <span className="text-xs text-stone-600">{student.education_tier || 'Academic Degree'}</span>
             </div>
-            <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
-              Welcome back, {student.name}
-            </h1>
-            <div className="flex items-center gap-2 text-xs text-stone-500 mt-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+                Welcome back, {student.name}
+              </h1>
+              <button
+                onClick={() => setIsEditingProfile(true)}
+                className="p-1.5 rounded-lg text-stone-400 hover:text-stone-800 hover:bg-stone-100 transition-all border border-stone-200/60 hover:border-stone-300 shadow-2xs group flex items-center gap-1"
+                title="Edit Student Profile (Name, Goal, Daily Target, Education Tier)"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-stone-500 group-hover:text-stone-900" />
+                <span className="text-[10px] font-medium text-stone-500 group-hover:text-stone-900 hidden sm:inline">Edit Profile</span>
+              </button>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-stone-500 mt-1 flex-wrap">
               <span>Goal: <strong className="text-stone-800 font-medium">{student.goal || 'General Mastery'}</strong></span>
               <span>•</span>
               <span>Daily Target: <strong className="text-stone-800 font-medium">{student.daily_available_hours} hours</strong></span>
-              <button
-                onClick={() => setIsEditingGoal(true)}
-                className="ml-1.5 p-1 rounded-md text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
-                title="Edit study goals or exam date"
-              >
-                <Edit3 className="w-3 h-3" />
-              </button>
             </div>
           </div>
         </div>
@@ -217,7 +228,7 @@ export function DashboardView({ onNavigate }: Props) {
           {/* Exam Countdown or Self-Paced Badge */}
           {student.days_to_exam != null && student.days_to_exam > 0 ? (
             <div
-              onClick={() => setIsEditingGoal(true)}
+              onClick={() => setIsEditingProfile(true)}
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-blue-50/80 border border-blue-200/80 text-blue-900 shadow-2xs cursor-pointer hover:bg-blue-100/70 transition-colors"
               title="Click to adjust exam date"
             >
@@ -229,7 +240,7 @@ export function DashboardView({ onNavigate }: Props) {
             </div>
           ) : (
             <div
-              onClick={() => setIsEditingGoal(true)}
+              onClick={() => setIsEditingProfile(true)}
               className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-stone-50 border border-stone-200 text-stone-700 shadow-2xs cursor-pointer hover:bg-stone-100 transition-colors"
               title="Click to set an exam target date"
             >
@@ -612,74 +623,146 @@ export function DashboardView({ onNavigate }: Props) {
         )}
       </div>
 
-      {/* 6. MODAL: EDIT STUDY GOAL & EXAM DATE */}
-      {isEditingGoal && (
+      {/* 6. MODAL: EDIT STUDENT PROFILE (NAME, GOAL, DAILY TARGET, TIER, EXAM) */}
+      {isEditingProfile && (
         <div className="fixed inset-0 z-50 bg-stone-900/40 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="w-full max-w-md bg-white rounded-2xl border border-stone-200 shadow-xl p-6 space-y-4">
+          <div className="w-full max-w-md bg-white rounded-2xl border border-stone-200 shadow-2xl p-6 space-y-4 animate-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-stone-100 pb-3">
-              <h3 className="text-sm font-bold text-stone-900">Edit Study Goals & Target Date</h3>
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 rounded-lg bg-stone-900 text-white">
+                  <Edit3 className="w-4 h-4 text-amber-300" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-stone-900">Edit Student Profile</h3>
+                  <p className="text-[11px] text-stone-500">Update your name, study targets, and academic goals</p>
+                </div>
+              </div>
               <button
-                onClick={() => setIsEditingGoal(false)}
+                onClick={() => setIsEditingProfile(false)}
                 className="p-1.5 rounded-lg text-stone-400 hover:text-stone-700 hover:bg-stone-100 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveGoal} className="space-y-3.5 text-xs">
+            <form onSubmit={handleSaveProfile} className="space-y-3.5 text-xs">
               <div>
-                <label className="block text-stone-700 font-medium mb-1">Primary Study Goal</label>
+                <label className="block text-stone-700 font-bold uppercase tracking-wider text-[10px] mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  placeholder="e.g. Yadnesh"
+                  required
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:bg-white focus:outline-none focus:border-stone-900 transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="block text-stone-700 font-bold uppercase tracking-wider text-[10px] mb-1">
+                  Primary Study Goal / Career Target
+                </label>
                 <input
                   type="text"
                   value={editGoalText}
                   onChange={(e) => setEditGoalText(e.target.value)}
-                  placeholder="e.g. AI/ML, Semester Finals, GATE Exam"
-                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-none focus:border-stone-400"
+                  placeholder="e.g. Software Engineer @ Google, AI/ML Specialist, GATE 2026"
+                  required
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:bg-white focus:outline-none focus:border-stone-900 transition-colors"
                 />
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {['AI/ML Engineer', 'Full Stack SWE', 'Quant Trading', 'GATE Exam', 'Semester Finals'].map((g) => (
+                    <button
+                      type="button"
+                      key={g}
+                      onClick={() => setEditGoalText(g)}
+                      className="text-[10px] px-2 py-0.5 rounded-md bg-stone-100 hover:bg-stone-200 text-stone-600 transition-colors"
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
-                <label className="block text-stone-700 font-medium mb-1">Target Daily Study Time (Hours)</label>
-                <input
-                  type="number"
-                  min="0.5"
-                  max="12"
-                  step="0.5"
-                  value={editDailyHours}
-                  onChange={(e) => setEditDailyHours(parseFloat(e.target.value) || 2.0)}
-                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-none focus:border-stone-400"
-                />
-              </div>
-
-              <div>
-                <label className="block text-stone-700 font-medium mb-1">
-                  Days to Upcoming Exam <span className="text-stone-400 font-normal">(Leave blank for Self-Paced)</span>
+                <label className="block text-stone-700 font-bold uppercase tracking-wider text-[10px] mb-1">
+                  Education Tier / Academic Level
                 </label>
                 <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={editDaysToExam}
-                  onChange={(e) => setEditDaysToExam(e.target.value)}
-                  placeholder="e.g. 45 (or leave empty)"
-                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:outline-none focus:border-stone-400"
+                  type="text"
+                  value={editEducationTier}
+                  onChange={(e) => setEditEducationTier(e.target.value)}
+                  placeholder="e.g. B.Tech Computer Science (Final Year), Class 12 Boards"
+                  className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:bg-white focus:outline-none focus:border-stone-900 transition-colors"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-stone-700 font-bold uppercase tracking-wider text-[10px] mb-1">
+                    Daily Target (Hours)
+                  </label>
+                  <input
+                    type="number"
+                    min="0.5"
+                    max="16"
+                    step="0.5"
+                    value={editDailyHours}
+                    onChange={(e) => setEditDailyHours(parseFloat(e.target.value) || 2.0)}
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:bg-white focus:outline-none focus:border-stone-900 transition-colors"
+                  />
+                  <div className="flex gap-1 mt-1.5">
+                    {[2, 3.5, 5, 8].map((h) => (
+                      <button
+                        type="button"
+                        key={h}
+                        onClick={() => setEditDailyHours(h)}
+                        className={`text-[10px] px-2 py-0.5 rounded-md transition-colors ${
+                          editDailyHours === h
+                            ? 'bg-stone-900 text-white font-bold'
+                            : 'bg-stone-100 hover:bg-stone-200 text-stone-600'
+                        }`}
+                      >
+                        {h}h
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-stone-700 font-bold uppercase tracking-wider text-[10px] mb-1">
+                    Days to Exam / Deadline
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="365"
+                    value={editDaysToExam}
+                    onChange={(e) => setEditDaysToExam(e.target.value)}
+                    placeholder="e.g. 45 (or leave empty)"
+                    className="w-full px-3 py-2 rounded-xl bg-stone-50 border border-stone-200 text-stone-900 focus:bg-white focus:outline-none focus:border-stone-900 transition-colors"
+                  />
+                  <span className="text-[10px] text-stone-400 mt-1 block">Blank = Self-Paced</span>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-stone-100 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsEditingGoal(false)}
+                  onClick={() => setIsEditingProfile(false)}
                   className="px-3.5 py-2 rounded-xl text-stone-600 hover:bg-stone-100 font-medium transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={savingGoal}
-                  className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-medium shadow-2xs transition-colors disabled:opacity-50"
+                  disabled={savingProfile}
+                  className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold shadow-xs transition-colors disabled:opacity-50 flex items-center gap-1.5"
                 >
-                  {savingGoal ? 'Saving...' : 'Save Changes'}
+                  <Check className="w-3.5 h-3.5 text-amber-300" />
+                  <span>{savingProfile ? 'Saving...' : 'Save Profile'}</span>
                 </button>
               </div>
             </form>
