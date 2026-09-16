@@ -760,6 +760,7 @@ export function CourseView({ onNavigate }: CourseViewProps) {
                   className="bg-transparent border-none text-xs font-medium focus:outline-hidden text-stone-700 cursor-pointer"
                 >
                   <option value="all">All Sources</option>
+                  <option value="nptel">NPTEL / Swayam (IITs)</option>
                   <option value="github">GitHub Curated</option>
                   <option value="stanford">Stanford Open</option>
                   <option value="mit">MIT OpenCourseWare</option>
@@ -781,61 +782,81 @@ export function CourseView({ onNavigate }: CourseViewProps) {
 
           {/* Curated Open Source Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filteredOpenSource.map(course => (
-              <div
-                key={course.id}
-                className="rounded-3xl border border-stone-200/90 bg-white p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between space-y-4"
-              >
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-stone-100 text-stone-700 border border-stone-200">
-                      {course.source_platform || 'Open-Source'}
-                    </span>
-                    {course.github_stars !== undefined && course.github_stars > 0 && (
-                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1">
-                        <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
-                        <span>{course.github_stars.toLocaleString()}</span>
+            {filteredOpenSource.map(course => {
+              const isNptel = (course.source_platform || '').toLowerCase().includes('nptel') || 
+                              (course.title || '').toLowerCase().includes('nptel') ||
+                              (course.tags || []).some(t => t.toLowerCase().includes('nptel'));
+
+              return (
+                <div
+                  key={course.id}
+                  className={`rounded-3xl border p-5 shadow-2xs hover:shadow-xs transition-all flex flex-col justify-between space-y-4 ${
+                    isNptel ? 'bg-gradient-to-b from-amber-50/30 to-white border-amber-200/90' : 'bg-white border-stone-200/90'
+                  }`}
+                >
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${
+                        isNptel
+                          ? 'bg-amber-100/80 text-amber-900 border-amber-300 font-bold'
+                          : 'bg-stone-100 text-stone-700 border-stone-200'
+                      }`}>
+                        {isNptel ? `🏛️ ${course.source_platform || 'NPTEL (IITs)'}` : (course.source_platform || 'Open-Source')}
                       </span>
-                    )}
+                      {course.github_stars !== undefined && course.github_stars > 0 && (
+                        <span className="text-[10px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200 flex items-center gap-1 shrink-0">
+                          <Star className="w-3 h-3 fill-amber-400 text-amber-500" />
+                          <span>{course.github_stars.toLocaleString()}</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-sm font-bold text-stone-900 line-clamp-2 leading-snug">{course.title}</h3>
+                    <p className="text-xs text-stone-500 line-clamp-3 leading-relaxed">{course.description}</p>
                   </div>
 
-                  <h3 className="text-sm font-bold text-stone-900 line-clamp-2">{course.title}</h3>
-                  <p className="text-xs text-stone-500 line-clamp-3 leading-relaxed">{course.description}</p>
-                </div>
+                  <div className="space-y-3 pt-3 border-t border-stone-100">
+                    <div className="flex flex-wrap gap-1.5">
+                      {course.tags?.map((tag, tIdx) => (
+                        <span
+                          key={tIdx}
+                          className={`text-[10px] font-medium px-2 py-0.5 rounded-md border ${
+                            tag.toLowerCase().includes('nptel') || tag.toLowerCase().includes('iit') || tag.toLowerCase().includes('credit')
+                              ? 'bg-amber-50 text-amber-800 border-amber-200 font-semibold'
+                              : 'bg-stone-50 text-stone-600 border-stone-200/60'
+                          }`}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
 
-                <div className="space-y-3 pt-3 border-t border-stone-100">
-                  <div className="flex flex-wrap gap-1.5">
-                    {course.tags?.map((tag, tIdx) => (
-                      <span
-                        key={tIdx}
-                        className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-stone-50 text-stone-600 border border-stone-200/60"
-                      >
-                        {tag}
+                    <div className="flex items-center justify-between pt-1 text-xs">
+                      <span className="text-[11px] font-medium text-stone-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-stone-400" />
+                        <span>{course.estimated_hours}h coursework</span>
                       </span>
-                    ))}
-                  </div>
 
-                  <div className="flex items-center justify-between pt-1 text-xs">
-                    <span className="text-[11px] font-medium text-stone-500 flex items-center gap-1">
-                      <Clock className="w-3 h-3 text-stone-400" />
-                      <span>{course.estimated_hours}h estimated</span>
-                    </span>
-
-                    {course.external_url && (
-                      <a
-                        href={course.external_url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-stone-900 hover:text-stone-700 underline"
-                      >
-                        <span>Open Resource</span>
-                        <ArrowUpRight className="w-3 h-3" />
-                      </a>
-                    )}
+                      {course.external_url && (
+                        <a
+                          href={course.external_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className={`inline-flex items-center gap-1 text-[11px] font-bold transition-colors ${
+                            isNptel
+                              ? 'text-amber-900 hover:text-amber-700 underline'
+                              : 'text-stone-900 hover:text-stone-700 underline'
+                          }`}
+                        >
+                          <span>{isNptel ? 'Enroll on Swayam' : 'Open Resource'}</span>
+                          <ArrowUpRight className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

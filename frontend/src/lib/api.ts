@@ -1063,6 +1063,49 @@ class ApiClient {
   async getCareerReadiness(trackId: string): Promise<CareerReadinessResponse> {
     return this.request<CareerReadinessResponse>(`/career/readiness?track_id=${encodeURIComponent(trackId)}`);
   }
+
+  // LinkedIn Job Hirings & ATS Resume Studio
+  async getRecommendedJobs(params?: { sector?: string; role?: string; min_match?: number; search?: string }): Promise<JobsResponse> {
+    const query = new URLSearchParams();
+    if (params?.sector) query.set('sector', params.sector);
+    if (params?.role) query.set('role', params.role);
+    if (params?.min_match) query.set('min_match', String(params.min_match));
+    if (params?.search) query.set('search', params.search);
+    const qs = query.toString();
+    return this.request<JobsResponse>(`/career/jobs${qs ? `?${qs}` : ''}`);
+  }
+
+  async generatePersonalizedResume(data: { job_id?: string; target_role?: string; custom_instructions?: string }): Promise<ResumeResponse> {
+    return this.request<ResumeResponse>('/career/resume/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async generateCoverLetter(data: { job_id: string; company?: string; role?: string; custom_pitch?: string }): Promise<CoverLetterResponse> {
+    return this.request<CoverLetterResponse>('/career/cover-letter/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getUserApplications(): Promise<{ applications: JobApplication[]; total: number }> {
+    return this.request<{ applications: JobApplication[]; total: number }>('/career/applications');
+  }
+
+  async createJobApplication(data: { job_id: string; company: string; role: string; location?: string; status?: string; notes?: string }): Promise<{ success: boolean; application: JobApplication; message: string }> {
+    return this.request<{ success: boolean; application: JobApplication; message: string }>('/career/applications', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateJobApplication(appId: string, data: { status?: string; notes?: string }): Promise<{ success: boolean; application: JobApplication }> {
+    return this.request<{ success: boolean; application: JobApplication }>(`/career/applications/${encodeURIComponent(appId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  }
 }
 
 export interface WellbeingCheckInResponse {
@@ -1143,4 +1186,90 @@ export interface CareerReadinessResponse {
   recommended_action: string;
 }
 
+export interface JobListing {
+  id: string;
+  company: string;
+  role: string;
+  sector: string;
+  location: string;
+  job_type: string;
+  experience_level: string;
+  salary_range: string;
+  required_skills: string[];
+  preferred_skills?: string[];
+  description: string;
+  apply_url: string;
+  posted_date: string;
+  match_score_pct: number;
+  matched_skills: string[];
+  missing_skills: string[];
+  skills_count: number;
+}
+
+export interface JobsResponse {
+  jobs: JobListing[];
+  total_jobs: number;
+  student_skills_count: number;
+  student_goal: string;
+  source: string;
+}
+
+export interface ResumeData {
+  name: string;
+  title: string;
+  contact: {
+    email: string;
+    phone: string;
+    linkedin: string;
+    github: string;
+    location: string;
+  };
+  summary: string;
+  skills: {
+    languages: string[];
+    core_concepts: string[];
+    frameworks_tools: string[];
+    coursework: string[];
+  };
+  projects: Array<{
+    title: string;
+    tech_stack: string[];
+    bullet_points: string[];
+  }>;
+  education: {
+    degree: string;
+    institution: string;
+    graduation_year: string;
+    relevant_coursework: string[];
+  };
+  verified_achievements: string[];
+}
+
+export interface ResumeResponse {
+  success: boolean;
+  resume: ResumeData;
+  target_job?: JobListing | null;
+  target_role: string;
+  target_company: string;
+}
+
+export interface CoverLetterResponse {
+  company: string;
+  role: string;
+  cover_letter: string;
+}
+
+export interface JobApplication {
+  id: string;
+  job_id: string;
+  company: string;
+  role: string;
+  location: string;
+  status: string;
+  notes?: string;
+  applied_at: string;
+  updated_at: string;
+}
+
 export const api = new ApiClient();
+

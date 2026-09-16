@@ -136,3 +136,46 @@ def test_security_auth():
     decoded = decode_access_token(token)
     assert decoded is not None
     assert decoded["sub"] == "user_12345"
+
+def test_nptel_courses_curation():
+    from app.services.course_service import CURATED_OPEN_SOURCE_COURSES
+    assert "aiml" in CURATED_OPEN_SOURCE_COURSES
+    assert "general_cs" in CURATED_OPEN_SOURCE_COURSES
+    assert "electronics_electrical" in CURATED_OPEN_SOURCE_COURSES
+    assert "mechanical" in CURATED_OPEN_SOURCE_COURSES
+    
+    # Check that NPTEL courses from top IITs exist with official Swayam links
+    all_courses = []
+    for field, courses in CURATED_OPEN_SOURCE_COURSES.items():
+        all_courses.extend(courses)
+    
+    nptel_courses = [c for c in all_courses if "NPTEL" in c.get("source_platform", "")]
+    assert len(nptel_courses) >= 6
+    for nc in nptel_courses:
+        assert nc["external_url"].startswith("https://swayam.gov.in/explorer?searchText=")
+        assert any(inst in nc["description"] for inst in ["IIT", "IISc", "NPTEL", "Prof."])
+        assert len(nc["modules"]) > 0
+
+def test_tech_job_matching_and_career_tracks():
+    from app.api.career import TECH_JOB_LISTINGS, INDUSTRY_TRACKS
+    assert len(TECH_JOB_LISTINGS) >= 10
+    assert len(INDUSTRY_TRACKS) >= 40
+    
+    # Test job listing integrity
+    for job in TECH_JOB_LISTINGS:
+        assert "id" in job
+        assert "company" in job
+        assert "role" in job
+        assert "required_skills" in job
+        assert len(job["required_skills"]) > 0
+        assert job["apply_url"].startswith("https://www.linkedin.com/jobs/search/?keywords=")
+    
+    # Test track rubrics
+    google_track = next((t for t in INDUSTRY_TRACKS if t["id"] == "google_swe"), None)
+    assert google_track is not None
+    assert google_track["company"] == "Google"
+    assert len(google_track["hiring_criteria"]) > 0
+    assert len(google_track["key_topics"]) > 0
+
+
+

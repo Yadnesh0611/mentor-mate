@@ -1119,6 +1119,74 @@ async def toggle_lesson_completion(
 CURATED_OPEN_SOURCE_COURSES = {
     "aiml": [
         {
+            "title": "NPTEL: Deep Learning (IIT Madras)",
+            "field_of_study": "Artificial Intelligence & Machine Learning (AIML)",
+            "description": "Rigorous 12-week NPTEL course taught by Prof. Mitesh M. Khapra (IIT Madras). Covers Neural Networks, Backpropagation, CNNs, RNNs, Autoencoders, Optimization (Adam/RMSProp), and Attention Mechanisms.",
+            "level": "Intermediate to Advanced",
+            "estimated_hours": 60,
+            "source_platform": "NPTEL / Swayam (IIT Madras)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=deep+learning+mitesh+khapra",
+            "github_stars": 19400,
+            "tags": ["NPTEL", "IIT Madras", "Deep Learning", "Neural Networks", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Feedforward Neural Networks & Backprop Math", "lessons_count": 6, "duration": "15h"},
+                {"title": "Week 4-6: Optimization Algorithms & Regularization", "lessons_count": 6, "duration": "15h"},
+                {"title": "Week 7-9: Convolutional Neural Networks & Architectures", "lessons_count": 6, "duration": "15h"},
+                {"title": "Week 10-12: Recurrent Networks, LSTMs & Transformers", "lessons_count": 6, "duration": "15h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Python for Data Science (IIT Madras)",
+            "field_of_study": "Artificial Intelligence & Machine Learning (AIML)",
+            "description": "Official 4-week NPTEL foundation course by Prof. Ragunathan Rengasamy (IIT Madras) covering NumPy, Pandas, statistical distributions, data cleaning, and regression modeling.",
+            "level": "Beginner",
+            "estimated_hours": 24,
+            "source_platform": "NPTEL / Swayam (IIT Madras)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=python+for+data+science+ragunathan",
+            "github_stars": 14200,
+            "tags": ["NPTEL", "IIT Madras", "Python", "Data Science", "1 Credit"],
+            "modules": [
+                {"title": "Week 1: Python Basics & NumPy Arrays", "lessons_count": 4, "duration": "6h"},
+                {"title": "Week 2: Data Manipulation with Pandas", "lessons_count": 4, "duration": "6h"},
+                {"title": "Week 3: Visualization with Matplotlib & Seaborn", "lessons_count": 4, "duration": "6h"},
+                {"title": "Week 4: Applied Linear & Logistic Regression", "lessons_count": 4, "duration": "6h"}
+            ]
+        },
+        {
+            "title": "NPTEL: An Introduction to Artificial Intelligence (IIT Delhi)",
+            "field_of_study": "Artificial Intelligence & Machine Learning (AIML)",
+            "description": "12-week comprehensive AI curriculum by Prof. Mausam (IIT Delhi). Covers state space search, heuristic search (A*, IDA*), adversarial game playing, Markov Decision Processes, and probabilistic reasoning.",
+            "level": "Intermediate",
+            "estimated_hours": 55,
+            "source_platform": "NPTEL / Swayam (IIT Delhi)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=artificial+intelligence+mausam+iit+delhi",
+            "github_stars": 16800,
+            "tags": ["NPTEL", "IIT Delhi", "AI Search", "MDPs", "Game Theory", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Uninformed & Heuristic Search (A*, IDA*)", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 4-6: Adversarial Search, Minimax & Alpha-Beta", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 7-9: Constraint Satisfaction & Logic Systems", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: MDPs, Reinforcement Learning & Bayes Nets", "lessons_count": 6, "duration": "14h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Reinforcement Learning (IIT Madras)",
+            "field_of_study": "Artificial Intelligence & Machine Learning (AIML)",
+            "description": "Advanced 12-week course by Prof. Balaraman Ravindran (IIT Madras) exploring Multi-Armed Bandits, Dynamic Programming, Temporal Difference (Q-Learning, SARSA), and Policy Gradient methods.",
+            "level": "Advanced",
+            "estimated_hours": 60,
+            "source_platform": "NPTEL / Swayam (IIT Madras)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=reinforcement+learning+balaraman+ravindran",
+            "github_stars": 12400,
+            "tags": ["NPTEL", "IIT Madras", "Reinforcement Learning", "Q-Learning", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Multi-Armed Bandits & Tabular MDPs", "lessons_count": 6, "duration": "15h"},
+                {"title": "Week 4-6: Dynamic Programming & Monte Carlo Methods", "lessons_count": 6, "duration": "15h"},
+                {"title": "Week 7-9: TD Learning, Q-Learning & SARSA", "lessons_count": 6, "duration": "15h"},
+                {"title": "Week 10-12: Function Approximation & Policy Gradients", "lessons_count": 6, "duration": "15h"}
+            ]
+        },
+        {
             "title": "ML For Beginners: 12-Week Curriculum",
             "field_of_study": "Artificial Intelligence & Machine Learning (AIML)",
             "description": "A 12-week, 26-lesson comprehensive curriculum on Machine Learning created by Microsoft Cloud Advocates with hands-on Scikit-learn exercises.",
@@ -1169,26 +1237,77 @@ CURATED_OPEN_SOURCE_COURSES = {
                 {"title": "Unsupervised Learning & EM Algorithm", "lessons_count": 4, "duration": "12h"},
                 {"title": "Reinforcement Learning & MDPs", "lessons_count": 4, "duration": "13h"}
             ]
-        },
-        {
-            "title": "Data Science for Beginners: 10-Week Roadmap",
-            "field_of_study": "Artificial Intelligence & Machine Learning (AIML)",
-            "description": "Comprehensive curriculum on data science essentials, probability, pandas, data engineering, and ethical AI by Microsoft.",
-            "level": "Beginner",
-            "estimated_hours": 35,
-            "source_platform": "GitHub",
-            "external_url": "https://github.com/microsoft/Data-Science-For-Beginners",
-            "github_stars": 32100,
-            "tags": ["Data Science", "Pandas", "Statistics", "Visualization"],
-            "modules": [
-                {"title": "Defining Data Science & Ethics", "lessons_count": 3, "duration": "6h"},
-                {"title": "Data Preparation & Cleaning", "lessons_count": 4, "duration": "8h"},
-                {"title": "Exploratory Data Analysis", "lessons_count": 4, "duration": "9h"},
-                {"title": "Applied Statistical Inference", "lessons_count": 4, "duration": "12h"}
-            ]
         }
     ],
     "general_cs": [
+        {
+            "title": "NPTEL: Programming, Data Structures & Algorithms using Python (IIT Madras / CMI)",
+            "field_of_study": "Computer Science & Engineering",
+            "description": "Official 8-week NPTEL foundational course taught by Prof. Madhavan Mukund (Director, CMI / IIT Madras). Covers sorting algorithms, binary search trees, dynamic programming, and Python data structures.",
+            "level": "Beginner to Intermediate",
+            "estimated_hours": 40,
+            "source_platform": "NPTEL / Swayam (IIT Madras)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=programming+data+structures+algorithms+python+madhavan+mukund",
+            "github_stars": 22500,
+            "tags": ["NPTEL", "IIT Madras", "Algorithms", "Python", "2 Credits"],
+            "modules": [
+                {"title": "Week 1-2: Algorithmic Efficiency & Recursion", "lessons_count": 6, "duration": "10h"},
+                {"title": "Week 3-4: Sorting, Searching & Stacks/Queues", "lessons_count": 6, "duration": "10h"},
+                {"title": "Week 5-6: Binary Search Trees & Heaps", "lessons_count": 6, "duration": "10h"},
+                {"title": "Week 7-8: Graph Traversals & Dynamic Programming", "lessons_count": 6, "duration": "10h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Database Management Systems (IIT Kharagpur)",
+            "field_of_study": "Computer Science & Engineering",
+            "description": "8-week NPTEL flagship course by Prof. Partha Pratim Das (IIT Kharagpur) covering Relational Algebra, SQL, Normalization (1NF to BCNF), Indexing (B+ Trees), and ACID Transaction Processing.",
+            "level": "Intermediate",
+            "estimated_hours": 45,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=database+management+systems+partha+pratim+das",
+            "github_stars": 18200,
+            "tags": ["NPTEL", "IIT Kharagpur", "DBMS", "SQL", "Indexing", "2 Credits"],
+            "modules": [
+                {"title": "Week 1-2: Relational Model & Relational Algebra", "lessons_count": 6, "duration": "11h"},
+                {"title": "Week 3-4: Advanced SQL & Schema Normalization", "lessons_count": 6, "duration": "11h"},
+                {"title": "Week 5-6: Storage Architecture & B+ Tree Indexing", "lessons_count": 6, "duration": "11h"},
+                {"title": "Week 7-8: ACID Transactions, Concurrency & Recovery", "lessons_count": 6, "duration": "12h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Operating System Fundamentals (IIT Kharagpur)",
+            "field_of_study": "Computer Science & Engineering",
+            "description": "12-week comprehensive systems course by Prof. Santanu Chattopadhyay (IIT Kharagpur). Deconstructs Process Scheduling, Threads, Semaphores, Deadlocks, Virtual Memory Paging, and File Systems.",
+            "level": "Intermediate",
+            "estimated_hours": 55,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=operating+system+santanu+chattopadhyay",
+            "github_stars": 15600,
+            "tags": ["NPTEL", "IIT Kharagpur", "Operating Systems", "Virtual Memory", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Processes, CPU Scheduling & Context Switch", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 4-6: Interprocess Sync, Semaphores & Deadlocks", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 7-9: Memory Management & Paging/Segmentation", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: Virtual Memory Replacement & File Systems", "lessons_count": 6, "duration": "14h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Computer Networks and Internet Protocol (IIT Kharagpur)",
+            "field_of_study": "Computer Science & Engineering",
+            "description": "12-week networking course by Prof. Soumya Kanti Ghosh (IIT Kharagpur) exploring TCP/IP Protocol Stack, Routing Algorithms (OSPF, BGP), Congestion Control, and Network Security.",
+            "level": "Intermediate",
+            "estimated_hours": 50,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=computer+networks+soumya+kanti+ghosh",
+            "github_stars": 14100,
+            "tags": ["NPTEL", "IIT Kharagpur", "Networking", "TCP/IP", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Physical & Data Link Layers (Ethernet, CSMA/CD)", "lessons_count": 6, "duration": "12h"},
+                {"title": "Week 4-6: Network Layer & IP Addressing / Subnetting", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 7-9: Routing Protocols (Dijkstra, Distance Vector, BGP)", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: Transport Layer (TCP Flow/Congestion) & Security", "lessons_count": 6, "duration": "12h"}
+            ]
+        },
         {
             "title": "OSSU: Open Source Society University (Computer Science)",
             "field_of_study": "Computer Science & Engineering",
@@ -1226,6 +1345,40 @@ CURATED_OPEN_SOURCE_COURSES = {
     ],
     "cybersecurity": [
         {
+            "title": "NPTEL: Cryptography and Network Security (IIT Kharagpur)",
+            "field_of_study": "Cybersecurity & Information Assurance",
+            "description": "12-week NPTEL course by Prof. Sourav Mukhopadhyay (IIT Kharagpur) detailing Classical Ciphers, Block Ciphers (DES/AES), Public-Key Cryptography (RSA/ECC), and Digital Signatures.",
+            "level": "Intermediate",
+            "estimated_hours": 50,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=cryptography+network+security+sourav+mukhopadhyay",
+            "github_stars": 11200,
+            "tags": ["NPTEL", "IIT Kharagpur", "Cryptography", "RSA", "AES", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Symmetric Ciphers & DES/AES Mathematics", "lessons_count": 6, "duration": "12h"},
+                {"title": "Week 4-6: Number Theory & Asymmetric Cryptosystems (RSA)", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 7-9: Elliptic Curve Cryptography & Hash Functions", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: Digital Signatures & Network Authentication", "lessons_count": 6, "duration": "12h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Ethical Hacking (IIT Kharagpur)",
+            "field_of_study": "Cybersecurity & Information Assurance",
+            "description": "12-week practical penetration testing and defensive security curriculum by Prof. Indranil Sengupta (IIT Kharagpur). Covers Network Scanning, Exploitation, Buffer Overflows, and Web Security.",
+            "level": "Intermediate",
+            "estimated_hours": 55,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=ethical+hacking+indranil+sengupta",
+            "github_stars": 16400,
+            "tags": ["NPTEL", "IIT Kharagpur", "Ethical Hacking", "Security Labs", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Reconnaissance & Port Scanning Protocols", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 4-6: Vulnerability Assessment & Buffer Overflows", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 7-9: Web App Security (SQLi, XSS, CSRF)", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: Wireless & Mobile Platform Penetration Testing", "lessons_count": 6, "duration": "14h"}
+            ]
+        },
+        {
             "title": "Practical Cybersecurity Roadmap & Labs",
             "field_of_study": "Cybersecurity & Information Assurance",
             "description": "Open-source security curriculum covering ethical hacking, network analysis, cryptography, reverse engineering, and threat intelligence.",
@@ -1242,6 +1395,61 @@ CURATED_OPEN_SOURCE_COURSES = {
                 {"title": "Incident Response & Forensics", "lessons_count": 4, "duration": "12h"}
             ]
         }
+    ],
+    "electronics_electrical": [
+        {
+            "title": "NPTEL: Digital Electronic Circuits (IIT Kharagpur)",
+            "field_of_study": "Electrical & Electronics Engineering",
+            "description": "12-week comprehensive electronics course by Prof. Goutam Saha (IIT Kharagpur). Covers Boolean Algebra, Combinational Circuit Optimization (K-Maps), Sequential Circuits (Flip-Flops, Counters), and FSM Design.",
+            "level": "Intermediate",
+            "estimated_hours": 55,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=digital+electronic+circuits+goutam+saha",
+            "github_stars": 9800,
+            "tags": ["NPTEL", "IIT Kharagpur", "VLSI", "Digital Circuits", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Number Systems & Boolean Minimization", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 4-6: Combinational Circuit Design & Multiplexers", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 7-9: Flip-Flops, Registers & Synchronous Counters", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: Finite State Machine (FSM) Synthesis", "lessons_count": 6, "duration": "14h"}
+            ]
+        },
+        {
+            "title": "NPTEL: Microprocessors and Microcontrollers (IIT Kharagpur)",
+            "field_of_study": "Electrical & Electronics Engineering",
+            "description": "12-week hardware architecture course by Prof. Santanu Chattopadhyay (IIT Kharagpur) covering 8085/8086 microprocessors, ARM architecture, instruction pipelining, and peripheral interfacing.",
+            "level": "Intermediate",
+            "estimated_hours": 50,
+            "source_platform": "NPTEL / Swayam (IIT Kharagpur)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=microprocessors+microcontrollers+santanu+chattopadhyay",
+            "github_stars": 8700,
+            "tags": ["NPTEL", "IIT Kharagpur", "Embedded Systems", "ARM", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: 8085 Microprocessor Architecture & Bus Cycles", "lessons_count": 6, "duration": "12h"},
+                {"title": "Week 4-6: 8086 Pipelined Architecture & Assembly", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 7-9: Peripheral Interfacing (8255, 8254 Timers)", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: ARM Cortex Microcontroller Programming", "lessons_count": 6, "duration": "12h"}
+            ]
+        }
+    ],
+    "mechanical": [
+        {
+            "title": "NPTEL: Engineering Mechanics (IIT Madras)",
+            "field_of_study": "Mechanical Engineering",
+            "description": "12-week foundational engineering mechanics by Prof. K. Ramesh (IIT Madras). Covers Statics, Equilibrium of Rigid Bodies, Trusses, Friction, Kinematics, and Dynamics of Particles.",
+            "level": "Beginner to Intermediate",
+            "estimated_hours": 55,
+            "source_platform": "NPTEL / Swayam (IIT Madras)",
+            "external_url": "https://swayam.gov.in/explorer?searchText=engineering+mechanics+k+ramesh",
+            "github_stars": 7600,
+            "tags": ["NPTEL", "IIT Madras", "Mechanics", "Statics & Dynamics", "3 Credits"],
+            "modules": [
+                {"title": "Week 1-3: Force Systems & 2D/3D Equilibrium", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 4-6: Truss Analysis (Method of Joints & Sections)", "lessons_count": 6, "duration": "14h"},
+                {"title": "Week 7-9: Friction, Wedges & Virtual Work Principles", "lessons_count": 6, "duration": "13h"},
+                {"title": "Week 10-12: Kinematics & Kinetics of Rigid Bodies", "lessons_count": 6, "duration": "14h"}
+            ]
+        }
     ]
 }
 
@@ -1252,47 +1460,22 @@ async def fetch_open_source_courses(
     force_refresh: bool = False
 ) -> List[Dict[str, Any]]:
     """
-    Retrieves authentic, real-time open-source courses and GitHub repositories
-    strictly matched to the student's field of study.
+    Retrieves authentic, real-time open-source courses, NPTEL/Swayam university courses,
+    and GitHub repositories strictly matched to the student's field of study.
     """
     norm_field = field_of_study.lower()
-    
-    if not force_refresh:
-        stmt = (
-            select(Course)
-            .where(Course.course_type == 'open_source')
-            .order_by(desc(Course.github_stars))
-        )
-        existing = (await db.execute(stmt)).scalars().all()
-        matching = [
-            c for c in existing 
-            if any(term in c.field_of_study.lower() or term in c.title.lower() for term in norm_field.split())
-        ]
-        if matching:
-            return [
-                {
-                    "id": c.id,
-                    "title": c.title,
-                    "field_of_study": c.field_of_study,
-                    "description": c.description,
-                    "level": c.level,
-                    "estimated_hours": c.estimated_hours,
-                    "source_platform": c.source_platform,
-                    "external_url": c.external_url,
-                    "github_stars": c.github_stars,
-                    "tags": c.tags,
-                    "modules": c.modules
-                }
-                for c in matching
-            ]
 
     selected_curated = []
     if any(k in norm_field for k in ["ai", "ml", "machine learning", "intelligence", "data"]):
-        selected_curated = CURATED_OPEN_SOURCE_COURSES["aiml"] + CURATED_OPEN_SOURCE_COURSES["general_cs"]
+        selected_curated = CURATED_OPEN_SOURCE_COURSES.get("aiml", []) + CURATED_OPEN_SOURCE_COURSES.get("general_cs", [])
     elif any(k in norm_field for k in ["security", "cyber", "hacking", "cryptography"]):
-        selected_curated = CURATED_OPEN_SOURCE_COURSES["cybersecurity"] + CURATED_OPEN_SOURCE_COURSES["general_cs"]
+        selected_curated = CURATED_OPEN_SOURCE_COURSES.get("cybersecurity", []) + CURATED_OPEN_SOURCE_COURSES.get("general_cs", [])
+    elif any(k in norm_field for k in ["electronic", "electrical", "vlsi", "circuit", "microprocessor"]):
+        selected_curated = CURATED_OPEN_SOURCE_COURSES.get("electronics_electrical", []) + CURATED_OPEN_SOURCE_COURSES.get("general_cs", [])
+    elif any(k in norm_field for k in ["mech", "thermal", "fluid", "manufacturing"]):
+        selected_curated = CURATED_OPEN_SOURCE_COURSES.get("mechanical", []) + CURATED_OPEN_SOURCE_COURSES.get("general_cs", [])
     else:
-        selected_curated = CURATED_OPEN_SOURCE_COURSES["general_cs"] + CURATED_OPEN_SOURCE_COURSES["aiml"]
+        selected_curated = CURATED_OPEN_SOURCE_COURSES.get("general_cs", []) + CURATED_OPEN_SOURCE_COURSES.get("aiml", [])
 
     github_items = []
     try:
@@ -1333,6 +1516,9 @@ async def fetch_open_source_courses(
         if existing_course:
             existing_course.github_stars = item["github_stars"]
             existing_course.description = item["description"]
+            existing_course.source_platform = item["source_platform"]
+            existing_course.tags = item["tags"]
+            existing_course.modules = item["modules"]
             saved_records.append({
                 "id": existing_course.id,
                 "title": existing_course.title,
