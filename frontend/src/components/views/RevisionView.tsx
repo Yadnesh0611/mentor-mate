@@ -139,6 +139,7 @@ export function RevisionView() {
   const [cardIndex, setCardIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [deckCompleted, setDeckCompleted] = useState(false);
 
   // Speed Quiz state
   const [quizAnswers, setQuizAnswers] = useState<Record<number, string>>({});
@@ -188,6 +189,7 @@ export function RevisionView() {
     setCardIndex(0);
     setIsFlipped(false);
     setShowHint(false);
+    setDeckCompleted(false);
     setQuizAnswers({});
     setQuizSubmitted(false);
 
@@ -204,6 +206,7 @@ export function RevisionView() {
     setCardIndex(0);
     setIsFlipped(false);
     setShowHint(false);
+    setDeckCompleted(false);
     setQuizAnswers({});
     setQuizSubmitted(false);
   };
@@ -236,6 +239,7 @@ export function RevisionView() {
       setCardIndex(0);
       setIsFlipped(false);
       setShowHint(false);
+      setDeckCompleted(false);
       setQuizAnswers({});
       setQuizSubmitted(false);
     } catch (err: any) {
@@ -260,12 +264,14 @@ export function RevisionView() {
       const current = updated.find(i => i.id === activeItem.id);
       if (current) setActiveItem(current);
 
-      // Advance to next card if available
+      // Advance to next card if available, else finish deck
       const totalCards = activeItem.flashcards?.length || 0;
       if (cardIndex < totalCards - 1) {
         setCardIndex(prev => prev + 1);
         setIsFlipped(false);
         setShowHint(false);
+      } else {
+        setDeckCompleted(true);
       }
     } catch (err: any) {
       alert(err.message || 'Failed to record recall rating.');
@@ -611,7 +617,50 @@ export function RevisionView() {
               {/* FORMAT 1: INTERACTIVE FLIP FLASHCARDS */}
               {activeFormat === 'flashcards' && (
                 <div className="space-y-4">
-                  {currentCard ? (
+                  {deckCompleted ? (
+                    <div className="p-8 rounded-2xl bg-stone-50 border border-stone-200 text-center space-y-4 shadow-2xs">
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700 flex items-center justify-center mx-auto">
+                        <Check className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-stone-900">Flashcard Deck Completed!</h3>
+                        <p className="text-xs text-stone-500 mt-1 max-w-md mx-auto">
+                          Great job! All {flashcards.length} cards have been reviewed. Your next spaced review has been scheduled in ~{Math.round(activeItem.stability_days_s || 3)} days.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-center gap-2.5 pt-2">
+                        <button
+                          onClick={() => {
+                            setCardIndex(0);
+                            setIsFlipped(false);
+                            setShowHint(false);
+                            setDeckCompleted(false);
+                          }}
+                          className="px-4 py-2 rounded-xl bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold shadow-xs flex items-center gap-1.5 cursor-pointer transition-all"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Review Deck Again</span>
+                        </button>
+                        {speedQuiz.length > 0 && (
+                          <button
+                            onClick={() => setActiveFormat('speed_quiz')}
+                            className="px-4 py-2 rounded-xl bg-white hover:bg-stone-100 border border-stone-200 text-stone-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
+                          >
+                            <Zap className="w-3.5 h-3.5 text-amber-500" />
+                            <span>Take Speed Quiz</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setActiveFormat('mindmap')}
+                          className="px-4 py-2 rounded-xl bg-white hover:bg-stone-100 border border-stone-200 text-stone-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all"
+                        >
+                          <Network className="w-3.5 h-3.5 text-stone-600" />
+                          <span>View Mind Map</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : currentCard ? (
                     <div className="space-y-4">
                       {/* Card Area */}
                       <div

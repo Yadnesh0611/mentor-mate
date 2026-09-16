@@ -61,6 +61,11 @@ async def get_revision_items(
     items_out = []
 
     for rev, concept in rows:
+        # Sanitize if stability was blown up by previous review bugs
+        if rev.stability_days_s and rev.stability_days_s > 60.0:
+            rev.stability_days_s = 21.0
+            db.add(rev)
+
         # Calculate dynamic elapsed days
         last_dt = rev.last_reviewed_at
         if last_dt.tzinfo is None:
@@ -69,6 +74,8 @@ async def get_revision_items(
 
         # Calculate R(t) = 2^(-t / S)
         s_val = rev.stability_days_s if (rev.stability_days_s and rev.stability_days_s > 0) else 3.0
+        if s_val > 60.0:
+            s_val = 21.0
         current_retention = retention_service.calculate_retention(elapsed_days, s_val)
         rev.retention_estimate = current_retention
 
@@ -432,6 +439,10 @@ async def get_revision_item(
         last_dt = last_dt.replace(tzinfo=timezone.utc)
     elapsed_days = max(0.0, (now - last_dt).total_seconds() / 86400.0)
     s_val = rev.stability_days_s if (rev.stability_days_s and rev.stability_days_s > 0) else 3.0
+    if s_val > 60.0:
+        s_val = 21.0
+        rev.stability_days_s = s_val
+        await db.commit()
     current_retention = retention_service.calculate_retention(elapsed_days, s_val)
 
     return RevisionItemOut(
@@ -475,32 +486,38 @@ async def complete_revision_review(
 
     now = datetime.now(timezone.utc)
     current_s = rev.stability_days_s if (rev.stability_days_s and rev.stability_days_s > 0) else 3.0
+    if current_s > 60.0:
+        current_s = 21.0
 
-    # Calculate new stability based on rating or score
+    # Calculate new stability based on rating or score (bounded between 1.0 and 60.0 days)
     if req.difficulty_rating:
         r_lower = req.difficulty_rating.lower()
         if r_lower == "easy":
-            new_s = round(current_s * 2.5, 2)
+            new_s = min(60.0, max(3.0, round(current_s * 1.5, 1)))
         elif r_lower == "good":
-            new_s = round(current_s * 1.8, 2)
+            new_s = min(45.0, max(2.0, round(current_s * 1.3, 1)))
         elif r_lower == "hard":
-            new_s = max(1.0, round(current_s * 0.8, 2))
-        else:  # "again"
-            new_s = max(1.0, round(current_s * 0.5, 2))
+            new_s = min(21.0, max(1.0, round(current_s * 0.85, 1)))
+        else:  # "again" (lapse / forgotten)
+            new_s = 1.0  # Immediate reset to 1 day on lapse
     elif req.score is not None:
         rev.last_score = req.score
         if req.score >= 0.8:
-            new_s = round(current_s * 2.0, 2)
+            new_s = min(60.0, max(3.0, round(current_s * 1.4, 1)))
         elif req.score >= 0.6:
-            new_s = round(current_s * 1.5, 2)
+            new_s = min(30.0, max(2.0, round(current_s * 1.15, 1)))
         else:
-            new_s = max(1.0, round(current_s * 0.6, 2))
+            new_s = 1.0
     else:
         new_s, _ = retention_service.update_stability_after_review(
             current_stability_s=current_s,
             is_remembered=req.is_remembered,
             current_retention=rev.retention_estimate or 1.0
         )
+        new_s = min(60.0, max(1.0, round(new_s, 1)))
+
+    # Hard ceiling clamp
+    new_s = min(60.0, max(1.0, new_s))
 
     # Next review scheduled when R(t) decays to 0.70: t = -S * log2(0.70) ≈ S * 0.5146
     days_to_next = max(1.0, round(new_s * 0.5146, 1))
@@ -517,7 +534,7 @@ async def complete_revision_review(
     await db.refresh(rev)
 
     return {
-        "message": f"Revision review logged. Memory stability increased to S = {new_s} days.",
+        "message": f"Revision review logged. Memory stability calibrated to S = {new_s} days.",
         "new_stability_days": new_s,
         "next_review_at": rev.next_review_at,
         "review_count": rev.review_count
