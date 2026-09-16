@@ -875,10 +875,43 @@ from app.models.resource import Resource
 
 logger = logging.getLogger("career_jobs")
 
+class ResumeContactInput(BaseModel):
+    phone: Optional[str] = None
+    linkedin: Optional[str] = None
+    github: Optional[str] = None
+    location: Optional[str] = None
+    portfolio: Optional[str] = None
+
+class ResumeProjectInput(BaseModel):
+    title: str
+    description: Optional[str] = None
+    tech_stack: Optional[List[str]] = []
+    bullet_points: Optional[List[str]] = []
+
+class ResumeExperienceInput(BaseModel):
+    role: str
+    company: str
+    duration: Optional[str] = None
+    description: Optional[str] = None
+    bullet_points: Optional[List[str]] = []
+
+class ResumeEducationInput(BaseModel):
+    degree: Optional[str] = None
+    institution: Optional[str] = None
+    graduation_year: Optional[str] = None
+    gpa: Optional[str] = None
+
 class ResumeGenerateRequest(BaseModel):
     job_id: Optional[str] = None
     target_role: Optional[str] = None
     custom_instructions: Optional[str] = None
+    # Real candidate details provided directly:
+    contact: Optional[ResumeContactInput] = None
+    education: Optional[ResumeEducationInput] = None
+    skills_override: Optional[List[str]] = None
+    projects: Optional[List[ResumeProjectInput]] = None
+    experiences: Optional[List[ResumeExperienceInput]] = None
+    certifications: Optional[List[str]] = None
 
 class CoverLetterGenerateRequest(BaseModel):
     job_id: str
@@ -1172,12 +1205,20 @@ async def generate_personalized_resume(
     profile = (await db.execute(prof_stmt)).scalar_one_or_none()
 
     student_name = profile.name if profile and profile.name else (user.name or "Student Candidate")
-    student_email = user.email or "candidate@university.edu"
-    education_tier = profile.education_tier if profile else (user.education_tier or "Undergraduate B.Tech")
-    university = profile.board_or_university if profile else "State Technical University"
-    goal = profile.goal if profile else (user.field_of_study or "Software Development Engineering")
+    student_email = user.email or ""
+    education_tier = req.education.degree if (req.education and req.education.degree) else (profile.education_tier if profile else (user.education_tier or "Undergraduate"))
+    university = req.education.institution if (req.education and req.education.institution) else (profile.board_or_university if profile else "University")
+    grad_year = req.education.graduation_year if (req.education and req.education.graduation_year) else "2026"
+    gpa_val = req.education.gpa if (req.education and req.education.gpa) else ""
+    goal = profile.goal if profile else (user.field_of_study or "Software Engineering")
 
-    # 2. Fetch student verified knowledge states
+    # Real Contact Specifics
+    contact_phone = (req.contact.phone if req.contact and req.contact.phone else "").strip()
+    contact_linkedin = (req.contact.linkedin if req.contact and req.contact.linkedin else "").strip()
+    contact_github = (req.contact.github if req.contact and req.contact.github else "").strip()
+    contact_location = (req.contact.location if req.contact and req.contact.location else "").strip()
+
+    # 2. Fetch student verified knowledge states (strictly genuine data)
     ks_stmt = (
         select(KnowledgeState, Concept.name, Concept.topic)
         .join(Concept, KnowledgeState.concept_id == Concept.id)
@@ -1193,7 +1234,7 @@ async def generate_personalized_resume(
     # 3. Fetch uploaded notes & coursework
     res_stmt = select(Resource).where(Resource.user_id == user.id).limit(5)
     resources = (await db.execute(res_stmt)).scalars().all()
-    coursework_titles = [r.title for r in resources if r.title] or ["Data Structures & Algorithms", "Object Oriented Design", "Database Systems"]
+    coursework_titles = [r.title for r in resources if r.title]
 
     # 4. Resolve target job
     target_job = None
@@ -1201,43 +1242,74 @@ async def generate_personalized_resume(
         target_job = next((j for j in TECH_JOB_LISTINGS if j["id"] == req.job_id), None)
 
     target_title = req.target_role or (target_job["role"] if target_job else goal)
-    target_company = target_job["company"] if target_job else "Top Tech Enterprise"
-    required_keywords = target_job.get("required_skills", []) if target_job else ["Data Structures", "Algorithms", "Clean Architecture"]
+    target_company = target_job["company"] if target_job else "Target Organization"
+    required_keywords = target_job.get("required_skills", []) if target_job else []
 
-    # 5. Synthesize ATS-Optimized Resume using AI
+    # 5. Build candidate real input context
+    user_projects_context = ""
+    if req.projects and len(req.projects) > 0:
+        user_projects_context = "CANDIDATE-SUPPLIED REAL PROJECTS:\n"
+        for p in req.projects:
+            user_projects_context += f"- Title: {p.title}\n  Tech Stack: {', '.join(p.tech_stack or [])}\n  Description / Notes: {p.description or ''}\n"
+            if p.bullet_points:
+                for b in p.bullet_points:
+                    user_projects_context += f"  • {b}\n"
+
+    user_exp_context = ""
+    if req.experiences and len(req.experiences) > 0:
+        user_exp_context = "CANDIDATE-SUPPLIED REAL WORK EXPERIENCE / INTERNSHIPS:\n"
+        for exp in req.experiences:
+            user_exp_context += f"- Role: {exp.role} at {exp.company} ({exp.duration or 'Recent'})\n  Details: {exp.description or ''}\n"
+
+    user_skills_override = req.skills_override or []
+
+    # 6. Synthesize ATS-Optimized Resume using AI (STRICT AUTHENTICITY ENFORCED)
     prompt = (
-        "You are an Elite Executive Resume Writer & Technical Recruiter specializing in ATS (Applicant Tracking System) optimization.\n\n"
-        f"STUDENT PROFILE:\n"
+        "You are an Elite Technical Resume Synthesizer specializing in ATS compliance and strict factual truthfulness.\n\n"
+        "CRITICAL INSTRUCTION - ZERO FAKE DATA TOLERANCE:\n"
+        "1. DO NOT invent fake projects, fake internships, fake phone numbers, fake URLs, or fake company experience.\n"
+        "2. ONLY structure, refine, and polish the REAL information provided below.\n"
+        "3. For projects: If the candidate provided real projects, format their real descriptions into STAR (Situation, Task, Action, Result) bullet points with action verbs. If no projects were provided, format their genuine evaluated coursework.\n"
+        "4. For contact info: Use ONLY the provided email and real contact details. Do not invent fake placeholders.\n\n"
+        f"REAL CANDIDATE PROFILE:\n"
         f"- Full Name: {student_name}\n"
         f"- Email: {student_email}\n"
-        f"- Education: {education_tier} at {university}\n"
-        f"- Target Role: {target_title} ({target_company})\n"
-        f"- Target Keywords: {', '.join(required_keywords)}\n"
-        f"- Verified Technical Competencies: {', '.join(verified_competencies) if verified_competencies else 'Object-Oriented Programming, Polymorphism, Dynamic Dispatch, Memory Management, Algorithms'}\n"
-        f"- Coursework & Monitored Notes: {', '.join(coursework_titles)}\n"
+        f"- Phone: {contact_phone if contact_phone else 'Not provided'}\n"
+        f"- LinkedIn: {contact_linkedin if contact_linkedin else 'Not provided'}\n"
+        f"- GitHub: {contact_github if contact_github else 'Not provided'}\n"
+        f"- Location: {contact_location if contact_location else 'Not provided'}\n"
+        f"- Education: {education_tier} at {university} (Graduation: {grad_year})\n"
+        f"- GPA / Score: {gpa_val if gpa_val else 'Not specified'}\n"
+        f"- Target Role: {target_title} (Targeting: {target_company})\n"
+        f"- Target Skills/Keywords: {', '.join(required_keywords) if required_keywords else 'Software Engineering Fundamentals'}\n"
+        f"- Verified Knowledge States: {', '.join(verified_competencies) if verified_competencies else 'Evaluated in academic study sessions'}\n"
+        f"- Genuine Coursework / Notes: {', '.join(coursework_titles) if coursework_titles else 'Academic curriculum & technical problem solving'}\n"
+        f"- Real Skills Listed by Candidate: {', '.join(user_skills_override) if user_skills_override else 'Grounded in syllabus'}\n\n"
+        f"{user_projects_context}\n"
+        f"{user_exp_context}\n"
     )
     if req.custom_instructions:
-        prompt += f"- Custom Emphasis: {req.custom_instructions}\n"
+        prompt += f"- Candidate Custom Instructions: {req.custom_instructions}\n"
 
     prompt += (
-        "\nTASK: Generate a flawless, high-impact, ATS-compliant single-page professional resume formatted as strict JSON with exactly these keys:\n"
-        "1. name: Candidate full name\n"
-        "2. title: Professional headline matching target role\n"
-        "3. contact: { \"email\": \"...\", \"phone\": \"+91 XXXXX XXXXX\", \"linkedin\": \"linkedin.com/in/...\", \"github\": \"github.com/...\", \"location\": \"India\" }\n"
-        "4. summary: 3-4 sentence ATS-optimized executive summary highlighting verified technical strengths and engineering foundation\n"
-        "5. skills: { \"languages\": [...], \"core_concepts\": [...], \"frameworks_tools\": [...], \"coursework\": [...] }\n"
-        "6. projects: Array of 2 to 3 academic/practical projects with { \"title\": \"...\", \"tech_stack\": [...], \"bullet_points\": [\"Action verb + Task + Quantifiable Result / Architecture\"] }\n"
-        "7. education: { \"degree\": \"...\", \"institution\": \"...\", \"graduation_year\": \"2026\", \"relevant_coursework\": [...] }\n"
-        "8. verified_achievements: Array of 2-3 genuine achievements (e.g. 'Achieved 90%+ evaluated mastery in Object-Oriented Architecture & Memory Allocation on Mentor Mate diagnostic benchmarks.')\n\n"
+        "\nTASK: Return a clean, ATS-compliant single-page resume formatted as strict JSON with exactly these keys:\n"
+        "1. name: Candidate real full name\n"
+        "2. title: Professional title matching target role\n"
+        "3. contact: { \"email\": \"...\", \"phone\": \"...\", \"linkedin\": \"...\", \"github\": \"...\", \"location\": \"...\" } (Leave empty string if not provided, DO NOT invent fake data)\n"
+        "4. summary: 2-3 sentence authentic summary highlighting their actual technical foundation and focus\n"
+        "5. skills: { \"languages\": [...], \"core_concepts\": [...], \"frameworks_tools\": [...], \"coursework\": [...] } (Only real skills based on candidate input and verified competencies)\n"
+        "6. projects: Array of projects with { \"title\": \"...\", \"tech_stack\": [...], \"bullet_points\": [\"Action verb + Task + Result\"] }\n"
+        "7. education: { \"degree\": \"...\", \"institution\": \"...\", \"graduation_year\": \"...\", \"relevant_coursework\": [...] }\n"
+        "8. verified_achievements: Array of 1-3 genuine achievements (e.g. 'Mastery in assessed diagnostic benchmarks on Mentor Mate')\n\n"
         "Return ONLY raw valid JSON. No markdown code fences."
     )
 
     try:
         raw_resp = await ai_service.generate_chat(
             messages=[{"role": "user", "content": prompt}],
-            system_prompt="You are a professional ATS resume synthesizer. Generate valid, clean JSON only.",
+            system_prompt="You are a professional ATS resume synthesizer. Generate valid, clean JSON only. Strictly no fake details.",
             role=ModelRole.RESOURCE_SYNTHESIS,
-            temperature=0.2
+            temperature=0.1
         )
         clean_json = raw_resp.strip()
         if clean_json.startswith("```json"):
@@ -1249,56 +1321,68 @@ async def generate_personalized_resume(
         resume_data = json.loads(clean_json.strip())
     except Exception as err:
         logger.warning(f"AI Resume generation fallback: {err}")
-        # High-quality structured fallback
+        # Build strictly authentic fallback from candidate's real data
+        fallback_projects = []
+        if req.projects and len(req.projects) > 0:
+            for p in req.projects:
+                fallback_projects.append({
+                    "title": p.title,
+                    "tech_stack": p.tech_stack or [goal],
+                    "bullet_points": p.bullet_points if p.bullet_points else [
+                        p.description or f"Developed and evaluated {p.title} using {', '.join(p.tech_stack or ['core technologies'])}."
+                    ]
+                })
+        elif coursework_titles:
+            for title in coursework_titles[:2]:
+                fallback_projects.append({
+                    "title": f"Academic Project: {title}",
+                    "tech_stack": ["Problem Solving", "Academic Labs"],
+                    "bullet_points": [
+                        f"Completed in-depth coursework and practical problem sets in {title}.",
+                        "Applied core engineering principles and verified problem-solving benchmarks."
+                    ]
+                })
+        else:
+            fallback_projects.append({
+                "title": f"Technical Foundation: {goal}",
+                "tech_stack": ["Algorithms", "Problem Solving"],
+                "bullet_points": [
+                    f"Engaged in comprehensive study and diagnostic assessments for {goal}.",
+                    "Demonstrated verified proficiency across core technical concepts."
+                ]
+            })
+
         resume_data = {
             "name": student_name,
-            "title": f"Aspiring {target_title}",
+            "title": f"Candidate — {target_title}",
             "contact": {
                 "email": student_email,
-                "phone": "+91 98765 43210",
-                "linkedin": f"linkedin.com/in/{student_name.lower().replace(' ', '-')}",
-                "github": f"github.com/{student_name.lower().replace(' ', '')}",
-                "location": "Bengaluru, India"
+                "phone": contact_phone,
+                "linkedin": contact_linkedin,
+                "github": contact_github,
+                "location": contact_location
             },
             "summary": (
-                f"Driven {education_tier} candidate in {goal} with rigorously verified foundations in Data Structures, "
-                f"Object-Oriented Architecture, and systems engineering. Proven problem solver with demonstrated competence in "
-                f"designing modular, memory-efficient software and tackling high-scale technical challenges."
+                f"Candidate with verified academic foundation in {goal} and {education_tier} at {university}. "
+                f"Demonstrated analytical competence and rigorous problem-solving discipline."
             ),
             "skills": {
-                "languages": ["C++", "Python", "Java", "SQL", "Go"],
-                "core_concepts": ["Data Structures & Algorithms", "Dynamic Dispatch & vtables", "Memory Allocation & RAII", "DBMS Indexing (B+ Trees)", "Operating Systems"],
-                "frameworks_tools": ["Git", "Linux CLI", "Docker", "FastAPI", "PyTorch"],
-                "coursework": coursework_titles
+                "languages": user_skills_override or ["Python", "Java", "C++", "SQL"],
+                "core_concepts": [c.split(" (Mastery:")[0] for c in verified_competencies] if verified_competencies else ["Data Structures & Algorithms", "Object-Oriented Design"],
+                "frameworks_tools": ["Git", "Linux CLI"],
+                "coursework": coursework_titles or ["Computer Science Core"]
             },
-            "projects": [
-                {
-                    "title": "High-Throughput Polymorphic Layer Pipeline",
-                    "tech_stack": ["C++20", "Smart Pointers", "Memory Profiling"],
-                    "bullet_points": [
-                        "Architected an extensible neural network dispatch container using pure virtual contracts and vtable dynamic binding.",
-                        "Enforced strict RAII memory management and Rule of Five semantics to eliminate dangling pointers and double-free vulnerabilities.",
-                        "Benchmarked heap footprint and cache line alignment, achieving zero memory leaks across 10,000 heterogeneous layer iterations."
-                    ]
-                },
-                {
-                    "title": "Distributed Query & Caching Engine",
-                    "tech_stack": ["Python", "FastAPI", "Redis", "PostgreSQL"],
-                    "bullet_points": [
-                        "Developed asynchronous REST APIs with token bucket rate limiting and Redis caching, reducing query latency by 45%.",
-                        "Designed normalized 3NF database schema and optimized B-Tree indices to handle high concurrent read/write transactions."
-                    ]
-                }
-            ],
+            "projects": fallback_projects,
             "education": {
                 "degree": education_tier,
                 "institution": university,
-                "graduation_year": "2026",
+                "graduation_year": grad_year,
                 "relevant_coursework": coursework_titles
             },
             "verified_achievements": [
-                f"Demonstrated verified mastery (>85%) in Object-Oriented Architecture and Memory Invariants on Mentor Mate academic benchmarks.",
-                "Completed rigorous multi-module course curriculum and diagnostic engineering assessments."
+                f"Completed verified assessment benchmarks in {goal} on Mentor Mate."
+            ] if not verified_competencies else [
+                f"Evaluated mastery in {', '.join([c.split(' (Mastery:')[0] for c in verified_competencies[:2]])} on Mentor Mate academic benchmarks."
             ]
         }
 

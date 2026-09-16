@@ -1075,7 +1075,31 @@ class ApiClient {
     return this.request<JobsResponse>(`/career/jobs${qs ? `?${qs}` : ''}`);
   }
 
-  async generatePersonalizedResume(data: { job_id?: string; target_role?: string; custom_instructions?: string }): Promise<ResumeResponse> {
+  async generatePersonalizedResume(data: {
+    job_id?: string;
+    target_role?: string;
+    custom_instructions?: string;
+    contact?: {
+      phone?: string;
+      linkedin?: string;
+      github?: string;
+      location?: string;
+      portfolio?: string;
+    };
+    education?: {
+      degree?: string;
+      institution?: string;
+      graduation_year?: string;
+      gpa?: string;
+    };
+    skills_override?: string[];
+    projects?: Array<{
+      title: string;
+      description?: string;
+      tech_stack?: string[];
+      bullet_points?: string[];
+    }>;
+  }): Promise<ResumeResponse> {
     return this.request<ResumeResponse>('/career/resume/generate', {
       method: 'POST',
       body: JSON.stringify(data),
