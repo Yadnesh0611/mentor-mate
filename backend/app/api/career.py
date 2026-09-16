@@ -1206,19 +1206,21 @@ async def generate_personalized_resume(
 
     student_name = profile.name if profile and profile.name else (user.name or "Student Candidate")
     student_email = user.email or ""
-    education_tier = req.education.degree if (req.education and req.education.degree) else (profile.education_tier if profile else (user.education_tier or "Undergraduate"))
-    university = req.education.institution if (req.education and req.education.institution) else (profile.board_or_university if profile else "University")
-    grad_year = req.education.graduation_year if (req.education and req.education.graduation_year) else "2026"
-    gpa_val = req.education.gpa if (req.education and req.education.gpa) else ""
-    goal = profile.goal if profile else (user.field_of_study or "Software Engineering")
+    
+    # Real candidate education from request or profile (NO fake defaults)
+    degree_val = (req.education.degree if req.education and req.education.degree else (profile.education_tier if profile and profile.education_tier else "")).strip()
+    inst_val = (req.education.institution if req.education and req.education.institution else (profile.board_or_university if profile and profile.board_or_university else "")).strip()
+    grad_year = (req.education.graduation_year if req.education and req.education.graduation_year else "").strip()
+    gpa_val = (req.education.gpa if req.education and req.education.gpa else "").strip()
+    goal = profile.goal if profile and profile.goal else (user.field_of_study or "Technical Studies")
 
-    # Real Contact Specifics
+    # Real Contact Specifics (Strictly from user input)
     contact_phone = (req.contact.phone if req.contact and req.contact.phone else "").strip()
     contact_linkedin = (req.contact.linkedin if req.contact and req.contact.linkedin else "").strip()
     contact_github = (req.contact.github if req.contact and req.contact.github else "").strip()
     contact_location = (req.contact.location if req.contact and req.contact.location else "").strip()
 
-    # 2. Fetch student verified knowledge states (strictly genuine data)
+    # 2. Fetch student verified knowledge states (strictly genuine data from BKT assessments)
     ks_stmt = (
         select(KnowledgeState, Concept.name, Concept.topic)
         .join(Concept, KnowledgeState.concept_id == Concept.id)
@@ -1247,44 +1249,50 @@ async def generate_personalized_resume(
 
     # 5. Build candidate real input context
     user_projects_context = ""
+    valid_user_projects = []
     if req.projects and len(req.projects) > 0:
-        user_projects_context = "CANDIDATE-SUPPLIED REAL PROJECTS:\n"
-        for p in req.projects:
-            user_projects_context += f"- Title: {p.title}\n  Tech Stack: {', '.join(p.tech_stack or [])}\n  Description / Notes: {p.description or ''}\n"
-            if p.bullet_points:
-                for b in p.bullet_points:
-                    user_projects_context += f"  • {b}\n"
+        valid_user_projects = [p for p in req.projects if p.title and p.title.strip()]
+        if valid_user_projects:
+            user_projects_context = "CANDIDATE-SUPPLIED REAL PROJECTS:\n"
+            for p in valid_user_projects:
+                user_projects_context += f"- Title: {p.title}\n  Tech Stack: {', '.join(p.tech_stack or [])}\n  Candidate Description: {p.description or ''}\n"
+                if p.bullet_points:
+                    for b in p.bullet_points:
+                        user_projects_context += f"  • {b}\n"
 
     user_exp_context = ""
     if req.experiences and len(req.experiences) > 0:
-        user_exp_context = "CANDIDATE-SUPPLIED REAL WORK EXPERIENCE / INTERNSHIPS:\n"
-        for exp in req.experiences:
-            user_exp_context += f"- Role: {exp.role} at {exp.company} ({exp.duration or 'Recent'})\n  Details: {exp.description or ''}\n"
+        valid_exp = [e for e in req.experiences if e.role and e.role.strip()]
+        if valid_exp:
+            user_exp_context = "CANDIDATE-SUPPLIED REAL WORK EXPERIENCE / INTERNSHIPS:\n"
+            for exp in valid_exp:
+                user_exp_context += f"- Role: {exp.role} at {exp.company} ({exp.duration or 'Recent'})\n  Details: {exp.description or ''}\n"
 
-    user_skills_override = req.skills_override or []
+    user_skills_override = [s.strip() for s in (req.skills_override or []) if s.strip()]
 
     # 6. Synthesize ATS-Optimized Resume using AI (STRICT AUTHENTICITY ENFORCED)
     prompt = (
         "You are an Elite Technical Resume Synthesizer specializing in ATS compliance and strict factual truthfulness.\n\n"
         "CRITICAL INSTRUCTION - ZERO FAKE DATA TOLERANCE:\n"
-        "1. DO NOT invent fake projects, fake internships, fake phone numbers, fake URLs, or fake company experience.\n"
+        "1. DO NOT invent fake projects, fake internships, fake phone numbers, fake URLs, fake GPA, or fake company experience.\n"
         "2. ONLY structure, refine, and polish the REAL information provided below.\n"
-        "3. For projects: If the candidate provided real projects, format their real descriptions into STAR (Situation, Task, Action, Result) bullet points with action verbs. If no projects were provided, format their genuine evaluated coursework.\n"
-        "4. For contact info: Use ONLY the provided email and real contact details. Do not invent fake placeholders.\n\n"
+        "3. For contact info: Use ONLY the provided email and real contact details. If phone or URLs are not provided, return empty string.\n"
+        "4. For projects: Format ONLY the candidate's provided projects into STAR (Situation, Task, Action, Result) bullet points. If NO projects were provided, return an empty array for projects.\n"
+        "5. For skills: Include ONLY the skills explicitly listed by the candidate and their verified knowledge competencies. Do NOT invent unrelated skills.\n\n"
         f"REAL CANDIDATE PROFILE:\n"
         f"- Full Name: {student_name}\n"
         f"- Email: {student_email}\n"
-        f"- Phone: {contact_phone if contact_phone else 'Not provided'}\n"
-        f"- LinkedIn: {contact_linkedin if contact_linkedin else 'Not provided'}\n"
-        f"- GitHub: {contact_github if contact_github else 'Not provided'}\n"
-        f"- Location: {contact_location if contact_location else 'Not provided'}\n"
-        f"- Education: {education_tier} at {university} (Graduation: {grad_year})\n"
-        f"- GPA / Score: {gpa_val if gpa_val else 'Not specified'}\n"
+        f"- Phone: {contact_phone if contact_phone else 'NONE'}\n"
+        f"- LinkedIn: {contact_linkedin if contact_linkedin else 'NONE'}\n"
+        f"- GitHub: {contact_github if contact_github else 'NONE'}\n"
+        f"- Location: {contact_location if contact_location else 'NONE'}\n"
+        f"- Degree: {degree_val if degree_val else 'Not specified'}\n"
+        f"- Institution: {inst_val if inst_val else 'Not specified'}\n"
+        f"- Graduation Year: {grad_year if grad_year else 'Not specified'}\n"
+        f"- GPA / Score: {gpa_val if gpa_val else 'NONE'}\n"
         f"- Target Role: {target_title} (Targeting: {target_company})\n"
-        f"- Target Skills/Keywords: {', '.join(required_keywords) if required_keywords else 'Software Engineering Fundamentals'}\n"
         f"- Verified Knowledge States: {', '.join(verified_competencies) if verified_competencies else 'Evaluated in academic study sessions'}\n"
-        f"- Genuine Coursework / Notes: {', '.join(coursework_titles) if coursework_titles else 'Academic curriculum & technical problem solving'}\n"
-        f"- Real Skills Listed by Candidate: {', '.join(user_skills_override) if user_skills_override else 'Grounded in syllabus'}\n\n"
+        f"- Real Skills Listed by Candidate: {', '.join(user_skills_override) if user_skills_override else 'NONE'}\n\n"
         f"{user_projects_context}\n"
         f"{user_exp_context}\n"
     )
@@ -1295,15 +1303,16 @@ async def generate_personalized_resume(
         "\nTASK: Return a clean, ATS-compliant single-page resume formatted as strict JSON with exactly these keys:\n"
         "1. name: Candidate real full name\n"
         "2. title: Professional title matching target role\n"
-        "3. contact: { \"email\": \"...\", \"phone\": \"...\", \"linkedin\": \"...\", \"github\": \"...\", \"location\": \"...\" } (Leave empty string if not provided, DO NOT invent fake data)\n"
-        "4. summary: 2-3 sentence authentic summary highlighting their actual technical foundation and focus\n"
-        "5. skills: { \"languages\": [...], \"core_concepts\": [...], \"frameworks_tools\": [...], \"coursework\": [...] } (Only real skills based on candidate input and verified competencies)\n"
-        "6. projects: Array of projects with { \"title\": \"...\", \"tech_stack\": [...], \"bullet_points\": [\"Action verb + Task + Result\"] }\n"
+        "3. contact: { \"email\": \"...\", \"phone\": \"...\", \"linkedin\": \"...\", \"github\": \"...\", \"location\": \"...\" } (Use empty string if not provided)\n"
+        "4. summary: 2-3 sentence authentic summary highlighting candidate's real focus and degree\n"
+        "5. skills: { \"languages\": [...], \"core_concepts\": [...], \"frameworks_tools\": [...], \"coursework\": [...] } (Only real skills from candidate input)\n"
+        "6. projects: Array of projects with { \"title\": \"...\", \"tech_stack\": [...], \"bullet_points\": [\"Action verb + Task + Result\"] } (Only candidate projects)\n"
         "7. education: { \"degree\": \"...\", \"institution\": \"...\", \"graduation_year\": \"...\", \"relevant_coursework\": [...] }\n"
-        "8. verified_achievements: Array of 1-3 genuine achievements (e.g. 'Mastery in assessed diagnostic benchmarks on Mentor Mate')\n\n"
+        "8. verified_achievements: Array of genuine achievements or empty array\n\n"
         "Return ONLY raw valid JSON. No markdown code fences."
     )
 
+    resume_data = None
     try:
         raw_resp = await ai_service.generate_chat(
             messages=[{"role": "user", "content": prompt}],
@@ -1318,43 +1327,47 @@ async def generate_personalized_resume(
             clean_json = clean_json[3:]
         if clean_json.endswith("```"):
             clean_json = clean_json[:-3]
-        resume_data = json.loads(clean_json.strip())
+        parsed = json.loads(clean_json.strip())
+        if isinstance(parsed, dict):
+            resume_data = parsed
     except Exception as err:
         logger.warning(f"AI Resume generation fallback: {err}")
-        # Build strictly authentic fallback from candidate's real data
+
+    # Build fallback or sanitize existing resume_data
+    if not resume_data:
         fallback_projects = []
-        if req.projects and len(req.projects) > 0:
-            for p in req.projects:
+        if valid_user_projects:
+            for p in valid_user_projects:
                 fallback_projects.append({
                     "title": p.title,
-                    "tech_stack": p.tech_stack or [goal],
+                    "tech_stack": p.tech_stack or [],
                     "bullet_points": p.bullet_points if p.bullet_points else [
-                        p.description or f"Developed and evaluated {p.title} using {', '.join(p.tech_stack or ['core technologies'])}."
+                        p.description or f"Implemented and evaluated {p.title}."
                     ]
                 })
         elif coursework_titles:
             for title in coursework_titles[:2]:
                 fallback_projects.append({
-                    "title": f"Academic Project: {title}",
+                    "title": f"Coursework Project: {title}",
                     "tech_stack": ["Problem Solving", "Academic Labs"],
                     "bullet_points": [
                         f"Completed in-depth coursework and practical problem sets in {title}.",
                         "Applied core engineering principles and verified problem-solving benchmarks."
                     ]
                 })
-        else:
-            fallback_projects.append({
-                "title": f"Technical Foundation: {goal}",
-                "tech_stack": ["Algorithms", "Problem Solving"],
-                "bullet_points": [
-                    f"Engaged in comprehensive study and diagnostic assessments for {goal}.",
-                    "Demonstrated verified proficiency across core technical concepts."
-                ]
-            })
+
+        summary_parts = []
+        if degree_val:
+            summary_parts.append(f"{degree_val} candidate")
+            if inst_val:
+                summary_parts.append(f"at {inst_val}")
+        if user_skills_override:
+            summary_parts.append(f"with focus in {', '.join(user_skills_override[:3])}")
+        summary_text = " ".join(summary_parts) + f". Target: {target_title}." if summary_parts else f"Candidate targeting {target_title}."
 
         resume_data = {
             "name": student_name,
-            "title": f"Candidate — {target_title}",
+            "title": target_title,
             "contact": {
                 "email": student_email,
                 "phone": contact_phone,
@@ -1362,29 +1375,121 @@ async def generate_personalized_resume(
                 "github": contact_github,
                 "location": contact_location
             },
-            "summary": (
-                f"Candidate with verified academic foundation in {goal} and {education_tier} at {university}. "
-                f"Demonstrated analytical competence and rigorous problem-solving discipline."
-            ),
+            "summary": summary_text,
             "skills": {
-                "languages": user_skills_override or ["Python", "Java", "C++", "SQL"],
-                "core_concepts": [c.split(" (Mastery:")[0] for c in verified_competencies] if verified_competencies else ["Data Structures & Algorithms", "Object-Oriented Design"],
-                "frameworks_tools": ["Git", "Linux CLI"],
-                "coursework": coursework_titles or ["Computer Science Core"]
+                "languages": user_skills_override if user_skills_override else [],
+                "core_concepts": [c.split(" (Mastery:")[0] for c in verified_competencies] if verified_competencies else [],
+                "frameworks_tools": [],
+                "coursework": coursework_titles
             },
             "projects": fallback_projects,
             "education": {
-                "degree": education_tier,
-                "institution": university,
+                "degree": degree_val,
+                "institution": inst_val,
                 "graduation_year": grad_year,
+                "gpa": gpa_val,
                 "relevant_coursework": coursework_titles
             },
             "verified_achievements": [
-                f"Completed verified assessment benchmarks in {goal} on Mentor Mate."
-            ] if not verified_competencies else [
                 f"Evaluated mastery in {', '.join([c.split(' (Mastery:')[0] for c in verified_competencies[:2]])} on Mentor Mate academic benchmarks."
-            ]
+            ] if verified_competencies else []
         }
+
+    # =========================================================================
+    # STRICT POST-PROCESSING: OVERWRITE ANY POTENTIAL AI HALLUCINATIONS
+    # =========================================================================
+    resume_data["name"] = student_name
+    
+    # 1. Contact Info: Strictly only user provided details (no fake mobile numbers)
+    resume_data["contact"] = {
+        "email": student_email,
+        "phone": contact_phone,
+        "linkedin": contact_linkedin,
+        "github": contact_github,
+        "location": contact_location
+    }
+
+    # 2. Education: Strictly only user provided details
+    resume_data["education"] = {
+        "degree": degree_val,
+        "institution": inst_val,
+        "graduation_year": grad_year,
+        "gpa": gpa_val,
+        "relevant_coursework": coursework_titles
+    }
+
+    # 3. Skills: If user provided explicit skills, enforce that only user skills and verified concepts exist
+    if user_skills_override:
+        # If AI parsed into sub-categories, keep those that match user skills or verified competencies
+        ai_skills = resume_data.get("skills", {})
+        if not isinstance(ai_skills, dict):
+            ai_skills = {}
+        
+        # Verify skills dictionary is not populated with hallucinated random languages
+        user_skills_set = {s.lower() for s in user_skills_override}
+        cleaned_languages = [s for s in ai_skills.get("languages", []) if s.lower() in user_skills_set]
+        cleaned_tools = [s for s in ai_skills.get("frameworks_tools", []) if s.lower() in user_skills_set]
+        cleaned_concepts = [s for s in ai_skills.get("core_concepts", []) if s.lower() in user_skills_set or any(s.lower() in vc.lower() for vc in verified_competencies)]
+        
+        # If filtering emptied everything out, put user skills into languages/tools
+        if not cleaned_languages and not cleaned_tools and not cleaned_concepts:
+            cleaned_languages = user_skills_override
+            cleaned_concepts = [c.split(" (Mastery:")[0] for c in verified_competencies]
+
+        resume_data["skills"] = {
+            "languages": cleaned_languages,
+            "frameworks_tools": cleaned_tools,
+            "core_concepts": cleaned_concepts,
+            "coursework": coursework_titles
+        }
+    elif not verified_competencies:
+        # No user skills and no verified competencies => Empty skills (Zero Fake Skills)
+        resume_data["skills"] = {
+            "languages": [],
+            "frameworks_tools": [],
+            "core_concepts": [],
+            "coursework": coursework_titles
+        }
+
+    # 4. Projects: Strictly only candidate provided projects
+    if valid_user_projects:
+        ai_projects = resume_data.get("projects", [])
+        if not isinstance(ai_projects, list) or len(ai_projects) == 0:
+            ai_projects = []
+        
+        # Map AI generated bullets to valid candidate project titles
+        final_projects = []
+        for p in valid_user_projects:
+            matching_ai_p = next((ap for ap in ai_projects if ap.get("title", "").lower() == p.title.lower()), None)
+            bullets = matching_ai_p.get("bullet_points", []) if matching_ai_p and matching_ai_p.get("bullet_points") else []
+            if not bullets:
+                bullets = p.bullet_points if p.bullet_points else [p.description or f"Engineered and validated {p.title}."]
+            final_projects.append({
+                "title": p.title,
+                "tech_stack": p.tech_stack or [],
+                "bullet_points": bullets
+            })
+        resume_data["projects"] = final_projects
+    else:
+        # Candidate provided no projects => Do NOT invent fake projects
+        if coursework_titles:
+            resume_data["projects"] = [{
+                "title": f"Academic Coursework: {coursework_titles[0]}",
+                "tech_stack": ["Coursework & Diagnostic Evaluation"],
+                "bullet_points": [
+                    f"Engaged in verified academic problem sets and concept evaluations in {coursework_titles[0]}."
+                ]
+            }]
+        else:
+            resume_data["projects"] = []
+
+    # 5. Verified Achievements: Only actual BKT evaluated mastery
+    if verified_competencies:
+        resume_data["verified_achievements"] = [
+            f"Evaluated mastery in {c} on Mentor Mate academic benchmarks" for c in verified_competencies[:3]
+        ]
+    else:
+        resume_data["verified_achievements"] = []
 
     return {
         "success": True,

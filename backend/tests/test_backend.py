@@ -177,5 +177,38 @@ def test_tech_job_matching_and_career_tracks():
     assert len(google_track["hiring_criteria"]) > 0
     assert len(google_track["key_topics"]) > 0
 
+def test_resume_schema_and_zero_fake_data():
+    from app.api.career import ResumeGenerateRequest, ResumeContactInput, ResumeEducationInput, ResumeProjectInput
+    
+    req = ResumeGenerateRequest(
+        target_role="Software Engineer",
+        contact=ResumeContactInput(
+            phone="+91 9988776655",
+            linkedin="linkedin.com/in/yadnesh",
+            github="github.com/yadnesh",
+            location="Mumbai, India"
+        ),
+        education=ResumeEducationInput(
+            degree="B.Tech Computer Science",
+            institution="IIT Bombay",
+            graduation_year="2026",
+            gpa="9.4"
+        ),
+        skills_override=["Python", "FastAPI", "PostgreSQL", "React"],
+        projects=[
+            ResumeProjectInput(
+                title="Distributed Search Engine",
+                tech_stack=["Python", "Redis", "FastAPI"],
+                description="Built an inverted index and sub-millisecond search query engine."
+            )
+        ]
+    )
+    assert req.contact.phone == "+91 9988776655"
+    assert req.education.institution == "IIT Bombay"
+    assert len(req.skills_override) == 4
+    assert len(req.projects) == 1
+    assert req.projects[0].title == "Distributed Search Engine"
+
+
 
 

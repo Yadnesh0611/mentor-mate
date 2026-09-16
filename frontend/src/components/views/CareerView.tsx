@@ -75,29 +75,29 @@ export function CareerView({ onNavigateToStudy }: Props) {
   const [resumeData, setResumeData] = useState<ResumeData | null>(null);
   const [resumeLoading, setResumeLoading] = useState(false);
   const [targetRole, setTargetRole] = useState('Software Development Engineer');
-  const [targetCompany, setTargetCompany] = useState('Google');
+  const [targetCompany, setTargetCompany] = useState('Target Company');
   const [coverLetterText, setCoverLetterText] = useState<string | null>(null);
   const [coverLetterLoading, setCoverLetterLoading] = useState(false);
   const [showCoverLetterModal, setShowCoverLetterModal] = useState(false);
   const [copiedState, setCopiedState] = useState(false);
 
   // Real Candidate Specifics State (Zero Hallucination / Zero Fake Data)
-  const [showSpecificsPanel, setShowSpecificsPanel] = useState(false);
+  const [showSpecificsPanel, setShowSpecificsPanel] = useState(true);
   const [userPhone, setUserPhone] = useState('');
   const [userLinkedin, setUserLinkedin] = useState('');
   const [userGithub, setUserGithub] = useState('');
-  const [userLocation, setUserLocation] = useState('India');
-  const [userDegree, setUserDegree] = useState('B.Tech Computer Science & Engineering');
-  const [userInstitution, setUserInstitution] = useState('State Technical University');
-  const [userGradYear, setUserGradYear] = useState('2026');
+  const [userLocation, setUserLocation] = useState('');
+  const [userDegree, setUserDegree] = useState('');
+  const [userInstitution, setUserInstitution] = useState('');
+  const [userGradYear, setUserGradYear] = useState('');
   const [userGpa, setUserGpa] = useState('');
-  const [userSkillsOverride, setUserSkillsOverride] = useState('C++, Python, Data Structures, Algorithms, SQL, Git, Linux');
+  const [userSkillsOverride, setUserSkillsOverride] = useState('');
   const [userProjects, setUserProjects] = useState<Array<{ id: string; title: string; tech_stack: string; description: string }>>([
     {
       id: '1',
-      title: 'Academic Coursework & Problem Solving System',
-      tech_stack: 'Python, Data Structures, Algorithms',
-      description: 'Implemented modular problem sets and diagnostic assessment benchmarks evaluating time and space complexity invariants.'
+      title: '',
+      tech_stack: '',
+      description: ''
     }
   ]);
 
@@ -155,9 +155,10 @@ export function CareerView({ onNavigateToStudy }: Props) {
   const fetchJobsAndApps = async () => {
     try {
       setJobsLoading(true);
-      const [jobsData, appsData] = await Promise.all([
+      const [jobsData, appsData, dashData] = await Promise.all([
         api.getRecommendedJobs(),
-        api.getUserApplications()
+        api.getUserApplications(),
+        api.getDashboard().catch(() => null)
       ]);
       setJobs(jobsData.jobs || []);
       setStudentGoal(jobsData.student_goal || '');
@@ -169,6 +170,14 @@ export function CareerView({ onNavigateToStudy }: Props) {
         setSelectedJob(jobsData.jobs[0]);
         setTargetRole(jobsData.jobs[0].role);
         setTargetCompany(jobsData.jobs[0].company);
+      }
+      if (dashData?.student) {
+        if (!userDegree && dashData.student.education_tier) {
+          setUserDegree(dashData.student.education_tier);
+        }
+        if (!userInstitution && dashData.student.board_or_university) {
+          setUserInstitution(dashData.student.board_or_university);
+        }
       }
     } catch (err: any) {
       console.error('Failed to load jobs or applications:', err);
@@ -219,7 +228,7 @@ export function CareerView({ onNavigateToStudy }: Props) {
       const res = await api.generatePersonalizedResume({
         job_id: job?.id,
         target_role: role,
-        custom_instructions: `Targeting ${company}. Strictly authentic formatting.`,
+        custom_instructions: `Targeting ${company}. Strictly authentic formatting based on candidate specifics.`,
         contact: {
           phone: userPhone.trim() || undefined,
           linkedin: userLinkedin.trim() || undefined,
@@ -1261,73 +1270,98 @@ export function CareerView({ onNavigateToStudy }: Props) {
                 </div>
 
                 {/* 3. Technical Skills */}
-                <div className="space-y-1.5">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
-                    Technical Skills & Core Competencies
-                  </h2>
-                  <div className="text-xs space-y-1 text-stone-800">
-                    <p>
-                      <strong>Languages:</strong> {resumeData.skills.languages.join(', ')}
-                    </p>
-                    <p>
-                      <strong>Frameworks & Tools:</strong> {resumeData.skills.frameworks_tools.join(', ')}
-                    </p>
-                    <p>
-                      <strong>Core Domains:</strong> {resumeData.skills.core_concepts.join(', ')}
-                    </p>
+                {((resumeData.skills.languages && resumeData.skills.languages.length > 0) ||
+                  (resumeData.skills.frameworks_tools && resumeData.skills.frameworks_tools.length > 0) ||
+                  (resumeData.skills.core_concepts && resumeData.skills.core_concepts.length > 0)) && (
+                  <div className="space-y-1.5">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
+                      Technical Skills & Core Competencies
+                    </h2>
+                    <div className="text-xs space-y-1 text-stone-800">
+                      {resumeData.skills.languages && resumeData.skills.languages.length > 0 && (
+                        <p>
+                          <strong>Languages:</strong> {resumeData.skills.languages.join(', ')}
+                        </p>
+                      )}
+                      {resumeData.skills.frameworks_tools && resumeData.skills.frameworks_tools.length > 0 && (
+                        <p>
+                          <strong>Frameworks & Tools:</strong> {resumeData.skills.frameworks_tools.join(', ')}
+                        </p>
+                      )}
+                      {resumeData.skills.core_concepts && resumeData.skills.core_concepts.length > 0 && (
+                        <p>
+                          <strong>Core Domains & Concepts:</strong> {resumeData.skills.core_concepts.join(', ')}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 4. Verified Projects & Technical Experience (STAR) */}
-                <div className="space-y-3">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
-                    Engineering Projects & Technical Experience
-                  </h2>
+                {resumeData.projects && resumeData.projects.length > 0 && (
+                  <div className="space-y-3">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
+                      Engineering Projects & Technical Experience
+                    </h2>
 
-                  <div className="space-y-3.5">
-                    {resumeData.projects.map((proj, idx) => (
-                      <div key={idx} className="space-y-1.5">
-                        <div className="flex items-baseline justify-between text-xs">
-                          <span className="font-bold text-stone-900">{proj.title}</span>
-                          <span className="text-stone-500 italic">[{proj.tech_stack.join(', ')}]</span>
+                    <div className="space-y-3.5">
+                      {resumeData.projects.map((proj, idx) => (
+                        <div key={idx} className="space-y-1.5">
+                          <div className="flex items-baseline justify-between text-xs">
+                            <span className="font-bold text-stone-900">{proj.title}</span>
+                            {proj.tech_stack && proj.tech_stack.length > 0 && (
+                              <span className="text-stone-500 italic">[{proj.tech_stack.join(', ')}]</span>
+                            )}
+                          </div>
+                          <ul className="text-xs text-stone-700 space-y-1 list-disc pl-4 leading-relaxed">
+                            {proj.bullet_points.map((pt, pIdx) => (
+                              <li key={pIdx}>{pt}</li>
+                            ))}
+                          </ul>
                         </div>
-                        <ul className="text-xs text-stone-700 space-y-1 list-disc pl-4 leading-relaxed">
-                          {proj.bullet_points.map((pt, pIdx) => (
-                            <li key={pIdx}>{pt}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* 5. Education */}
-                <div className="space-y-1.5">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
-                    Education & Academics
-                  </h2>
-                  <div className="flex items-center justify-between text-xs text-stone-800">
-                    <div>
-                      <span className="font-bold">{resumeData.education.degree}</span>
-                      <span className="text-stone-500"> — {resumeData.education.institution}</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-stone-400">({resumeData.education.graduation_year})</span>
+                {(resumeData.education.degree || resumeData.education.institution) && (
+                  <div className="space-y-1.5">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
+                      Education & Academics
+                    </h2>
+                    <div className="flex items-center justify-between text-xs text-stone-800 flex-wrap gap-1">
+                      <div>
+                        <span className="font-bold">{resumeData.education.degree || 'Degree Candidate'}</span>
+                        {resumeData.education.institution && (
+                          <span className="text-stone-500"> — {resumeData.education.institution}</span>
+                        )}
+                        {resumeData.education.gpa && (
+                          <span className="text-stone-500 font-medium ml-2">• GPA: {resumeData.education.gpa}</span>
+                        )}
+                      </div>
+                      {resumeData.education.graduation_year && (
+                        <div className="text-right">
+                          <span className="text-stone-400">({resumeData.education.graduation_year})</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* 6. Verified Achievements & Badges */}
-                <div className="space-y-1.5">
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
-                    Verified Competencies & Academic Badges
-                  </h2>
-                  <ul className="text-xs text-stone-700 space-y-0.5 list-disc pl-4">
-                    {resumeData.verified_achievements.map((ach, idx) => (
-                      <li key={idx} className="leading-relaxed">{ach}</li>
-                    ))}
-                  </ul>
-                </div>
+                {resumeData.verified_achievements && resumeData.verified_achievements.length > 0 && (
+                  <div className="space-y-1.5">
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
+                      Verified Competencies & Academic Badges
+                    </h2>
+                    <ul className="text-xs text-stone-700 space-y-0.5 list-disc pl-4">
+                      {resumeData.verified_achievements.map((ach, idx) => (
+                        <li key={idx} className="leading-relaxed">{ach}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           ) : (

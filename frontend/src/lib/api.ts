@@ -337,6 +337,7 @@ export interface DashboardData {
   student: {
     name: string;
     education_tier: string;
+    board_or_university?: string;
     goal: string;
     streak_days: number;
     daily_available_hours: number;
@@ -1264,6 +1265,7 @@ export interface ResumeData {
     degree: string;
     institution: string;
     graduation_year: string;
+    gpa?: string;
     relevant_coursework: string[];
   };
   verified_achievements: string[];
